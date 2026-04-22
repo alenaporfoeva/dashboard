@@ -1,0 +1,193 @@
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+.page {
+    display: flex;
+    max-width: 100%;
+    margin: 0 auto;
+    min-height: 100vh;
+}
+
+#open-button.hidden,
+.hidden {
+    display: none;
+}
+
+#open-button {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 1.2em;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px #0003;
+}
+
+.side-panel {
+    background-color: #2c3e50;
+    width: 250px;
+    min-height: 100vh;
+    flex-shrink: 0;
+}
+
+#toggle-button {
+    display: block;
+    width: 100%;
+    background-color: #34495e;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.month-selector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #ecf0f1;
+    margin: 20px 0 10px;
+}
+
+.month-selector h3 {
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.month-selector select {
+    width: 200px;
+    height: 38px;
+    margin-bottom: 8px;
+    background-color: #34495e;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    color: #ecf0f1;
+}
+
+nav {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+}
+
+.nav-item {
+    width: 100%;
+    padding: 15px 20px;
+    text-decoration: none;
+    color: #ecf0f1;
+    transition: background-color .2s ease;
+    border-left: 3px solid transparent;
+}
+
+.nav-item.active {
+    border-left-color: #3498db;
+    font-weight: 700;
+}
+
+.main-content {
+    background-color: #ecf0f1;
+    flex-grow: 1;
+    min-height: 100vh;
+}
+
+.content-wrapper {
+    width: calc(100% - 80px);
+    margin: 60px 40px 40px;
+}
+
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.main-content h1 {
+    color: #2c3e50;
+    border-bottom: 2px solid #bdc3c7;
+    padding-bottom: 10px;
+    font-weight: 700;
+
+}
+
+.add-btn {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color .2s ease;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 40px 5px;
+}
+
+th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color .2s ease;
+}
+
+th,
+td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    display: table-cell;
+    vertical-align: inherit;
+    font-weight: 700;
+}
+
+thead tr {
+    background-color: #34495e;
+    color: #fff;
+    height: 75px;
+}
+
+tbody tr {
+    background-color: #fff;
+    color: #2c3e50;
+    height: 60px;
+}
+
+.total-income-info {
+    margin-top: 20px;
+    margin-left: 40px;
+    padding: 15px 20px;
+    font-size: 1.1em;
+
+}
+
+.total-amount {
+    color: #27ae60;
+    font-weight: 700;
+    font-size: 1.2em;
+}
