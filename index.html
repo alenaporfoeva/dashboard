@@ -5,13 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <link rel="icon" href="img/icon-v2.svg" type="image/svg+xml" />
+    <link rel="icon" href="img/briefcase-svgrepo-com.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
     <div class="page">
-        <div class="side-panel">
+        <div class="side-panel" id="side-panel">
             <button id="toggle-button">☰</button>
             <div class="period-container">
                 <h3>Period</h3>
@@ -40,7 +40,7 @@
                 <a href="#" id="nav-employees" class="nav-item">Employees</a>
             </nav>
         </div>
-        <div class="main-content">
+        <div class="main-content" id="main-content">
             <button id="open-button" class="hidden">→</button>
             <div class="content-wrapper">
                 <div id="projects-content">
@@ -75,12 +75,59 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody>
+                            <tr>
+                                <td>DataViz Inc</td>
+                                <td>Analytics Dashboard</td>
+                                <td>$7900.00</td>
+                                <td>1.0/1</td>
+                                <td><button class="show-btn">Show Employees (1)</button></td>
+                                <td class="negative-income">$-1250.00</td>
+                                <td><button class="delete-btn">Delete</button></td>
+                            </tr>
+                            <tr>
+                                <td>SalesPro</td>
+                                <td>CRM System</td>
+                                <td>$10000.00</td>
+                                <td>1.4/2</td>
+                                <td><button class="show-btn">Show Employees (2)</button></td>
+                                <td class="negative-income">$-775.00</td>
+                                <td><button class="delete-btn">Delete</button></td>
+                            </tr>
+                            <tr>
+                                <td>TechCorp</td>
+                                <td>E-Commerce Platform</td>
+                                <td>$12500.00</td>
+                                <td>3.0/3</td>
+                                <td><button class="show-btn">Show Employees (3)</button></td>
+                                <td class="negative-income">$-3958.33</td>
+                                <td><button class="delete-btn">Delete</button></td>
+                            </tr>
+                            <tr>
+                                <td>MediCare Solutions</td>
+                                <td>Healthcare Portal</td>
+                                <td>$15000.00</td>
+                                <td>2.9/3</td>
+                                <td><button class="show-btn">Show Employees (4)</button></td>
+                                <td class="negative-income">$-4325.00</td>
+                                <td><button class="delete-btn">Delete</button></td>
+                            </tr>
+                            <tr>
+                                <td>TechCorp</td>
+                                <td>Mobile Banking App</td>
+                                <td>$16650.00</td>
+                                <td>1.9/2</td>
+                                <td><button class="show-btn">Show Employees (2)</button></td>
+                                <td class="positive-income">$2767.50</td>
+                                <td><button class="delete-btn">Delete</button></td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
                 <div id="projects-total-income" class="total-income-info">
                     <strong>Total Estimated Income:</strong>
-                    <span class="total-amount positive-income">$0.00</span>
+                    <span class="total-amount negative-income">$-16240.83</span>
+                    <span class="bench">(Bench payments: $8700.00)</span>
                 </div>
             </div>
             <div class="content-wrapper">
@@ -125,12 +172,194 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody>
+                            <tr>
+                                <td>John</td>
+                                <td>Smith</td>
+                                <td>29</td>
+                                <td>Junior</td>
+                                <td>$3750</td>
+                                <td>$3750.00</td>
+                                <td>
+                                    <button class="show-btn">
+                                        Show Assignments (1)<br>
+                                        <small>1.0/1.5</small>
+                                    </button>
+                                </td>
+                                <td class="positive-income">$208.33</td>
+                                <td>
+                                    <button class="availability-btn">Availability</button>
+                                    <button class="assign-btn">Assign</button>
+                                    <button class="delete-btn">Delete</button>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Sarah</td>
+                                <td>Johnson</td>
+                                <td>32</td>
+                                <td>Middle</td>
+                                <td>$5400</td>
+                                <td>$5400.00</td>
+                                <td>
+                                    <button class="show-btn">
+                                        Show Assignments (1)<br>
+                                        <small>1.0/1.5</small>
+                                    </button>
+                                </td>
+                                <td class="negative-income">$-1233.33</td>
+                                <td>
+                                    <button class="availability-btn">Availability</button>
+                                    <button class="assign-btn">Assign</button>
+                                    <button class="delete-btn">Delete</button>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Michael</td>
+                                <td>Williams</td>
+                                <td>35</td>
+                                <td>Senior</td>
+                                <td>$7100</td>
+                                <td>$7100.00</td>
+                                <td>
+                                    <button class="show-btn">
+                                        Show Assignments (1)<br>
+                                        <small>1.0/1.5</small>
+                                    </button>
+                                </td>
+                                <td class="negative-income">$-2933.33</td>
+                                <td>
+                                    <button class="availability-btn">Availability</button>
+                                    <button class="assign-btn">Assign</button>
+                                    <button class="delete-btn">Delete</button>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Emily</td>
+                                <td>Brown</td>
+                                <td>29</td>
+                                <td>Middle</td>
+                                <td>$5150</td>
+                                <td>$5150.00</td>
+                                <td>
+                                    <button class="show-btn">
+                                        Show Assignments (1)<br>
+                                        <small>1.0/1.5</small>
+                                    </button>
+                                </td>
+                                <td class="positive-income">$2342.50</td>
+                                <td>
+                                    <button class="availability-btn">Availability</button>
+                                    <button class="assign-btn">Assign</button>
+                                    <button class="delete-btn">Delete</button>
+                                </td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
+    <div id="project-panel" class="project-panel">
+        <div class="project-panel__content">
+            <h2>Add New Project</h2>
+
+            <form id="project-form">
+                <label for="project-name">Project Name: *</label>
+                <input type="text" id="project-name" name="projectName">
+
+                <label for="company-name">Company Name: *</label>
+                <input type="text" id="company-name" name="companyName">
+
+                <label for="project-budget">Budget: *</label>
+                <input type="number" id="project-budget" name="budget" step="0.01" min="0">
+
+                <label for="employee-capacity">Employee Capacity: *</label>
+                <input type="number" id="employee-capacity" name="employeeCapacity" min="1">
+
+                <div class="project-panel__actions">
+                    <button type="submit" class="panel-add-btn">Add</button>
+                    <button type="button" id="cancel-project-btn" class="panel-cancel-btn">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="employee-panel" class="employee-panel">
+        <div class="employee-panel__content">
+            <h2>Add New Employee</h2>
+
+            <form id="employee-form">
+                <label for="employee-name">Name: *</label>
+                <input type="text" id="employee-name" name="name">
+
+                <label for="employee-surname">Surname: *</label>
+                <input type="text" id="employee-surname" name="surname">
+
+                <label for="employee-dob">Date of Birth: *</label>
+                <input type="date" id="employee-dob" name="dob">
+
+                <label for="employee-position">Position: *</label>
+                <select id="employee-position" name="position">
+                    <option value="">Select position</option>
+                    <option value="Junior">Junior</option>
+                    <option value="Middle">Middle</option>
+                    <option value="Senior">Senior</option>
+                    <option value="Lead">Lead</option>
+                    <option value="Architect">Architect</option>
+                    <option value="BO">BO</option>
+                </select>
+
+                <label for="employee-salary">Salary: *</label>
+                <input type="number" id="employee-salary" name="salary" step="0.01" min="0">
+
+                <div class="employee-panel__actions">
+                    <button type="submit" class="panel-add-btn">Add</button>
+                    <button type="button" id="cancel-employee-btn" class="panel-cancel-btn">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Seed Data Popup -->
+    <div id="seed-overlay" class="overlay hidden"></div>
+    <div id="seed-modal" class="seed-modal hidden">
+        <div class="seed-modal__header">
+            <h2>Seed Data from Month</h2>
+            <button id="close-seed-modal">✕</button>
+        </div>
+
+        <div class="seed-modal__body">
+            <p>
+                Select a month to copy its data to the current month
+                <strong>(January 2026)</strong>:
+            </p>
+
+            <table class="seed-table">
+                <thead>
+                    <tr>
+                        <th>Year</th>
+                        <th>Month</th>
+                        <th>Projects</th>
+                        <th>Employees</th>
+                        <th>Total Est. Income</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2026</td>
+                        <td>February</td>
+                        <td>5</td>
+                        <td>15</td>
+                        <td class="negative">-$7540.83</td>
+                        <td><button class="seed-btn">Seed</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="script.js"></script>
 </body>
 
 </html>
