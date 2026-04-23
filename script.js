@@ -16,6 +16,29 @@ openButton.addEventListener("click", () => {
   openButton.classList.add("hidden");
 });
 
+// Project/Employee
+const navProjects = document.getElementById("nav-projects");
+const navEmployees = document.getElementById("nav-employees");
+
+const projectsContent = document.getElementById("projects-content");
+const employeesContent = document.getElementById("employees-content");
+
+navProjects.addEventListener("click", () => {
+  projectsContent.classList.remove("hidden-section");
+  employeesContent.classList.add("hidden-section");
+
+  navProjects.classList.add("active");
+  navEmployees.classList.remove("active");
+});
+
+navEmployees.addEventListener("click", () => {
+  employeesContent.classList.remove("hidden-section");
+  projectsContent.classList.add("hidden-section");
+
+  navEmployees.classList.add("active");
+  navProjects.classList.remove("active");
+});
+
 // Add project button
 const addProjectBtn = document.getElementById("add-project-btn");
 const projectPanel = document.getElementById("project-panel");

@@ -48,6 +48,10 @@ body {
     display: none;
 }
 
+.hidden-section {
+    display: none;
+}
+
 #open-button {
     position: fixed;
     top: 20px;
