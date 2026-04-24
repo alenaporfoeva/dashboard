@@ -1,4 +1,239 @@
-// Side-panel
+// Initial data
+const projects = [
+  {
+    companyName: "DataViz Inc",
+    projectName: "Analytics Dashboard",
+    budget: 7900,
+    employeeCapacityUsed: 1.0,
+    employeeCapacityTotal: 1,
+    employeesCount: 1,
+    estimatedIncome: -1250,
+  },
+  {
+    companyName: "SalesPro",
+    projectName: "CRM System",
+    budget: 10000,
+    employeeCapacityUsed: 1.4,
+    employeeCapacityTotal: 2,
+    employeesCount: 2,
+    estimatedIncome: -775,
+  },
+  {
+    companyName: "TechCorp",
+    projectName: "E-Commerce Platform",
+    budget: 12500,
+    employeeCapacityUsed: 3.0,
+    employeeCapacityTotal: 3,
+    employeesCount: 3,
+    estimatedIncome: -3958.33,
+  },
+  {
+    companyName: "MediCare Solutions",
+    projectName: "Healthcare Portal",
+    budget: 15000,
+    employeeCapacityUsed: 2.9,
+    employeeCapacityTotal: 3,
+    employeesCount: 4,
+    estimatedIncome: -4325,
+  },
+  {
+    companyName: "TechCorp",
+    projectName: "Mobile Banking App",
+    budget: 16650,
+    employeeCapacityUsed: 1.9,
+    employeeCapacityTotal: 2,
+    employeesCount: 2,
+    estimatedIncome: 2767.5,
+  },
+  {
+    companyName: "GreenSoft",
+    projectName: "Sustainability Tracker",
+    budget: 9200,
+    employeeCapacityUsed: 1.2,
+    employeeCapacityTotal: 2,
+    employeesCount: 2,
+    estimatedIncome: 850,
+  },
+];
+
+const employees = [
+  {
+    name: "John",
+    surname: "Smith",
+    age: 29,
+    position: "Junior",
+    salary: 3750,
+    estimatedPayment: 3750,
+    assignmentsCount: 1,
+    capacityUsed: 1.0,
+    capacityTotal: 1.5,
+    projectedIncome: 208.33,
+  },
+  {
+    name: "Sarah",
+    surname: "Johnson",
+    age: 32,
+    position: "Middle",
+    salary: 5400,
+    estimatedPayment: 5400,
+    assignmentsCount: 1,
+    capacityUsed: 1.0,
+    capacityTotal: 1.5,
+    projectedIncome: -1233.33,
+  },
+  {
+    name: "Michael",
+    surname: "Williams",
+    age: 35,
+    position: "Senior",
+    salary: 7100,
+    estimatedPayment: 7100,
+    assignmentsCount: 1,
+    capacityUsed: 1.0,
+    capacityTotal: 1.5,
+    projectedIncome: -2933.33,
+  },
+  {
+    name: "Emily",
+    surname: "Brown",
+    age: 29,
+    position: "Middle",
+    salary: 5150,
+    estimatedPayment: 5150,
+    assignmentsCount: 1,
+    capacityUsed: 1.0,
+    capacityTotal: 1.5,
+    projectedIncome: 2342.5,
+  },
+  {
+    name: "Daniel",
+    surname: "Miller",
+    age: 38,
+    position: "Lead",
+    salary: 8200,
+    estimatedPayment: 4100,
+    assignmentsCount: 0,
+    capacityUsed: 0,
+    capacityTotal: 1.5,
+    projectedIncome: -4100,
+  },
+];
+
+// Monthly data
+const monthlyData = {
+  "2025-0": {
+    projects,
+    employees,
+  },
+  "2025-1": {
+    projects: [],
+    employees: [],
+  },
+};
+
+// Helpers
+function formatCurrency(amount) {
+  return `$${amount.toFixed(2)}`;
+}
+
+function getIncomeClass(amount) {
+  return amount >= 0 ? "positive-income" : "negative-income";
+}
+
+// Projects table
+const projectsTableBody = document.getElementById("projects-table-body");
+
+function renderProjectsTable(projectsToRender) {
+  projectsTableBody.innerHTML = "";
+
+  projectsToRender.forEach((project) => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${project.companyName}</td>
+      <td>${project.projectName}</td>
+      <td>${formatCurrency(project.budget)}</td>
+      <td>${project.employeeCapacityUsed.toFixed(1)}/${project.employeeCapacityTotal}</td>
+      <td><button class="show-btn">Show Employees (${project.employeesCount})</button></td>
+      <td class="${getIncomeClass(project.estimatedIncome)}">
+        ${formatCurrency(project.estimatedIncome)}
+      </td>
+      <td><button class="delete-btn">Delete</button></td>
+    `;
+
+    projectsTableBody.appendChild(row);
+  });
+}
+
+// Employees table
+const employeesTableBody = document.getElementById("employees-table-body");
+
+function renderEmployeesTable(employeesToRender) {
+  employeesTableBody.innerHTML = "";
+
+  employeesToRender.forEach((employee) => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${employee.name}</td>
+      <td>${employee.surname}</td>
+      <td>${employee.age}</td>
+      <td>${employee.position}</td>
+      <td>${formatCurrency(employee.salary)}</td>
+      <td>${formatCurrency(employee.estimatedPayment)}</td>
+      <td>
+        <button class="show-btn">
+          Show Assignments (${employee.assignmentsCount})
+          <small>${employee.capacityUsed.toFixed(1)}/${employee.capacityTotal}</small>
+        </button>
+      </td>
+      <td class="${getIncomeClass(employee.projectedIncome)}">
+        ${formatCurrency(employee.projectedIncome)}
+      </td>
+      <td>
+        <button class="availability-btn">Availability</button>
+        <button class="assign-btn">Assign</button>
+        <button class="delete-btn">Delete</button>
+      </td>
+    `;
+
+    employeesTableBody.appendChild(row);
+  });
+}
+
+// Month switching
+const monthSelect = document.getElementById("month-select");
+const yearSelect = document.getElementById("year-select");
+const totalIncomeBlock = document.getElementById("projects-total-income");
+
+function getCurrentPeriodKey() {
+  return `${yearSelect.value}-${monthSelect.value}`;
+}
+
+function renderCurrentMonthData() {
+  const key = getCurrentPeriodKey();
+  const data = monthlyData[key];
+
+  if (!data) {
+    projectsTableBody.innerHTML = "";
+    employeesTableBody.innerHTML = "";
+    totalIncomeBlock.classList.add("hidden");
+    return;
+  }
+
+  renderProjectsTable(data.projects);
+  renderEmployeesTable(data.employees);
+
+  totalIncomeBlock.classList.toggle(
+    "hidden",
+    data.projects.length === 0
+  );
+}
+
+monthSelect.addEventListener("change", renderCurrentMonthData);
+yearSelect.addEventListener("change", renderCurrentMonthData);
+
+// Sidebar
 const sidePanel = document.getElementById("side-panel");
 const toggleButton = document.getElementById("toggle-button");
 const openButton = document.getElementById("open-side-panel-button");
@@ -16,14 +251,14 @@ openButton.addEventListener("click", () => {
   openButton.classList.add("hidden");
 });
 
-// Project/Employee
+// Navigation
 const navProjects = document.getElementById("nav-projects");
 const navEmployees = document.getElementById("nav-employees");
-
 const projectsContent = document.getElementById("projects-content");
 const employeesContent = document.getElementById("employees-content");
 
-navProjects.addEventListener("click", () => {
+navProjects.addEventListener("click", (e) => {
+  e.preventDefault();
   projectsContent.classList.remove("hidden-section");
   employeesContent.classList.add("hidden-section");
 
@@ -31,7 +266,8 @@ navProjects.addEventListener("click", () => {
   navEmployees.classList.remove("active");
 });
 
-navEmployees.addEventListener("click", () => {
+navEmployees.addEventListener("click", (e) => {
+  e.preventDefault();
   employeesContent.classList.remove("hidden-section");
   projectsContent.classList.add("hidden-section");
 
@@ -39,7 +275,7 @@ navEmployees.addEventListener("click", () => {
   navProjects.classList.remove("active");
 });
 
-// Add project button
+// Panels
 const addProjectBtn = document.getElementById("add-project-btn");
 const projectPanel = document.getElementById("project-panel");
 const cancelProjectBtn = document.getElementById("cancel-project-btn");
@@ -52,7 +288,6 @@ cancelProjectBtn.addEventListener("click", () => {
   projectPanel.classList.remove("open");
 });
 
-// Add employee button
 const addEmployeeBtn = document.getElementById("add-employee-btn");
 const employeePanel = document.getElementById("employee-panel");
 const cancelEmployeeBtn = document.getElementById("cancel-employee-btn");
@@ -65,19 +300,14 @@ cancelEmployeeBtn.addEventListener("click", () => {
   employeePanel.classList.remove("open");
 });
 
-// Submit of project and employee form
+// Forms
 const projectForm = document.getElementById("project-form");
 const employeeForm = document.getElementById("employee-form");
 
-projectForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-});
+projectForm.addEventListener("submit", (e) => e.preventDefault());
+employeeForm.addEventListener("submit", (e) => e.preventDefault());
 
-employeeForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-});
-
-// Seed Data popup
+// Seed modal
 const seedBtn = document.getElementById("seed-data-btn");
 const seedModal = document.getElementById("seed-modal");
 const overlay = document.getElementById("seed-overlay");
@@ -89,7 +319,6 @@ seedBtn.addEventListener("click", () => {
 });
 
 closeSeedModal.addEventListener("click", closeModal);
-
 overlay.addEventListener("click", closeModal);
 
 function closeModal() {
@@ -97,33 +326,5 @@ function closeModal() {
   overlay.classList.add("hidden");
 }
 
-// Januar 2025
-const monthSelect = document.getElementById("month-select");
-const yearSelect = document.getElementById("year-select");
-
-const projectsTableBody = document.querySelector("#projects-table tbody");
-const employeesTableBody = document.querySelector("#employees-table tbody");
-const totalIncomeBlock = document.getElementById("projects-total-income");
-
-const initialProjectsHTML = projectsTableBody.innerHTML;
-const initialEmployeesHTML = employeesTableBody.innerHTML;
-
-function updateDataByPeriod() {
-  const selectedMonth = monthSelect.value;
-  const selectedYear = yearSelect.value;
-
-  if (selectedMonth === "0" && selectedYear === "2025") {
-    projectsTableBody.innerHTML = initialProjectsHTML;
-    employeesTableBody.innerHTML = initialEmployeesHTML;
-    totalIncomeBlock.classList.remove("hidden");
-  } else {
-    projectsTableBody.innerHTML = "";
-    employeesTableBody.innerHTML = "";
-    totalIncomeBlock.classList.add("hidden");
-  }
-}
-
-monthSelect.addEventListener("change", updateDataByPeriod);
-yearSelect.addEventListener("change", updateDataByPeriod);
-
-updateDataByPeriod();
+// Init
+renderCurrentMonthData();
