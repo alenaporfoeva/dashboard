@@ -1,7 +1,7 @@
 // Side-panel
 const sidePanel = document.getElementById("side-panel");
 const toggleButton = document.getElementById("toggle-button");
-const openButton = document.getElementById("open-button");
+const openButton = document.getElementById("open-side-panel-button");
 const mainContent = document.getElementById("main-content");
 
 toggleButton.addEventListener("click", () => {
