@@ -96,3 +96,34 @@ function closeModal() {
   seedModal.classList.add("hidden");
   overlay.classList.add("hidden");
 }
+
+// Januar 2025
+const monthSelect = document.getElementById("month-select");
+const yearSelect = document.getElementById("year-select");
+
+const projectsTableBody = document.querySelector("#projects-table tbody");
+const employeesTableBody = document.querySelector("#employees-table tbody");
+const totalIncomeBlock = document.getElementById("projects-total-income");
+
+const initialProjectsHTML = projectsTableBody.innerHTML;
+const initialEmployeesHTML = employeesTableBody.innerHTML;
+
+function updateDataByPeriod() {
+  const selectedMonth = monthSelect.value;
+  const selectedYear = yearSelect.value;
+
+  if (selectedMonth === "0" && selectedYear === "2025") {
+    projectsTableBody.innerHTML = initialProjectsHTML;
+    employeesTableBody.innerHTML = initialEmployeesHTML;
+    totalIncomeBlock.classList.remove("hidden");
+  } else {
+    projectsTableBody.innerHTML = "";
+    employeesTableBody.innerHTML = "";
+    totalIncomeBlock.classList.add("hidden");
+  }
+}
+
+monthSelect.addEventListener("change", updateDataByPeriod);
+yearSelect.addEventListener("change", updateDataByPeriod);
+
+updateDataByPeriod();
