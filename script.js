@@ -304,8 +304,113 @@ cancelEmployeeBtn.addEventListener("click", () => {
 const projectForm = document.getElementById("project-form");
 const employeeForm = document.getElementById("employee-form");
 
-projectForm.addEventListener("submit", (e) => e.preventDefault());
-employeeForm.addEventListener("submit", (e) => e.preventDefault());
+function getCurrentMonthData() {
+  const key = getCurrentPeriodKey();
+
+  if (!monthlyData[key]) {
+    monthlyData[key] = {
+      projects: [],
+      employees: [],
+    };
+  }
+
+  return monthlyData[key];
+}
+
+function calculateAge(dateOfBirth) {
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDifference = today.getMonth() - birthDate.getMonth();
+
+  if (
+    monthDifference < 0 ||
+    (monthDifference === 0 && today.getDate() < birthDate.getDate())
+  ) {
+    age--;
+  }
+
+  return age;
+}
+
+projectForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const currentData = getCurrentMonthData();
+
+  const newProject = {
+    companyName: document.getElementById("company-name").value,
+    projectName: document.getElementById("project-name").value,
+    budget: Number(document.getElementById("project-budget").value),
+    employeeCapacityUsed: 0,
+    employeeCapacityTotal: Number(document.getElementById("employee-capacity").value),
+    employeesCount: 0,
+    estimatedIncome: 0,
+  };
+
+  currentData.projects.push(newProject);
+
+  projectForm.reset();
+  projectPanel.classList.remove("open");
+  renderCurrentMonthData();
+});
+
+employeeForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const currentData = getCurrentMonthData();
+
+  const salary = Number(document.getElementById("employee-salary").value);
+
+  const newEmployee = {
+    name: document.getElementById("employee-name").value,
+    surname: document.getElementById("employee-surname").value,
+    age: calculateAge(document.getElementById("employee-dob").value),
+    position: document.getElementById("employee-position").value,
+    salary: salary,
+    estimatedPayment: salary * 0.5,
+    assignmentsCount: 0,
+    capacityUsed: 0,
+    capacityTotal: 1.5,
+    projectedIncome: -(salary * 0.5),
+  };
+
+  currentData.employees.push(newEmployee);
+
+  employeeForm.reset();
+  employeePanel.classList.remove("open");
+  renderCurrentMonthData();
+});
+
+ // Add project and employee
+const projectInputs = projectForm.querySelectorAll("input");
+const projectAddBtn = projectForm.querySelector(".panel-add-btn");
+
+function validateProjectForm() {
+  const isValid = [...projectInputs].every(input => input.value.trim() !== "");
+
+  projectAddBtn.disabled = !isValid;
+  projectAddBtn.classList.toggle("active", isValid);
+}
+
+projectInputs.forEach(input => {
+  input.addEventListener("input", validateProjectForm);
+});
+
+const employeeInputs = employeeForm.querySelectorAll("input, select");
+const employeeAddBtn = employeeForm.querySelector(".panel-add-btn");
+
+function validateEmployeeForm() {
+  const isValid = [...employeeInputs].every(input => input.value.trim() !== "");
+
+  employeeAddBtn.disabled = !isValid;
+  employeeAddBtn.classList.toggle("active", isValid);
+}
+
+employeeInputs.forEach(input => {
+  input.addEventListener("input", validateEmployeeForm);
+});
 
 // Seed modal
 const seedBtn = document.getElementById("seed-data-btn");
