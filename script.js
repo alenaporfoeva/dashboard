@@ -300,9 +300,15 @@ cancelEmployeeBtn.addEventListener("click", () => {
   employeePanel.classList.remove("open");
 });
 
-// Forms
+// Add project and employee forms
 const projectForm = document.getElementById("project-form");
 const employeeForm = document.getElementById("employee-form");
+
+const projectAddBtn = projectForm.querySelector(".panel-add-btn");
+const employeeAddBtn = employeeForm.querySelector(".panel-add-btn");
+
+projectAddBtn.disabled = true;
+employeeAddBtn.disabled = true;
 
 function getCurrentMonthData() {
   const key = getCurrentPeriodKey();
@@ -334,8 +340,84 @@ function calculateAge(dateOfBirth) {
   return age;
 }
 
+function setFieldState(input, errorElement, isValid, message) {
+  if (isValid) {
+    input.classList.remove("invalid");
+    input.classList.add("valid");
+    errorElement.textContent = "";
+  } else {
+    input.classList.remove("valid");
+    input.classList.add("invalid");
+    errorElement.textContent = message;
+  }
+}
+
+function validateProjectForm() {
+  const projectName = document.getElementById("project-name");
+  const companyName = document.getElementById("company-name");
+  const budget = document.getElementById("project-budget");
+  const capacity = document.getElementById("employee-capacity");
+
+  const isProjectNameValid = projectName.value.trim().length >= 3;
+  const isCompanyNameValid = companyName.value.trim().length >= 2;
+  const isBudgetValid = Number(budget.value) > 0;
+  const isCapacityValid = Number(capacity.value) >= 1;
+
+  setFieldState(projectName, document.getElementById("project-name-error"), isProjectNameValid, "Project name must be at least 3 characters");
+  setFieldState(companyName, document.getElementById("company-name-error"), isCompanyNameValid, "Company name must be at least 2 characters");
+  setFieldState(budget, document.getElementById("project-budget-error"), isBudgetValid, "Budget must be greater than 0");
+  setFieldState(capacity, document.getElementById("employee-capacity-error"), isCapacityValid, "Employee capacity must be at least 1");
+
+  const isFormValid =
+    isProjectNameValid &&
+    isCompanyNameValid &&
+    isBudgetValid &&
+    isCapacityValid;
+
+  projectAddBtn.disabled = !isFormValid;
+  projectAddBtn.classList.toggle("active", isFormValid);
+
+  return isFormValid;
+}
+
+function validateEmployeeForm() {
+  const name = document.getElementById("employee-name");
+  const surname = document.getElementById("employee-surname");
+  const dob = document.getElementById("employee-dob");
+  const position = document.getElementById("employee-position");
+  const salary = document.getElementById("employee-salary");
+
+  const lettersOnly = /^[A-Za-zА-Яа-яЁё\s-]+$/;
+
+  const isNameValid = name.value.trim().length >= 3 && lettersOnly.test(name.value.trim());
+  const isSurnameValid = surname.value.trim().length >= 3 && lettersOnly.test(surname.value.trim());
+  const isDobValid = dob.value !== "" && calculateAge(dob.value) >= 18;
+  const isPositionValid = position.value !== "";
+  const isSalaryValid = Number(salary.value) > 0;
+
+  setFieldState(name, document.getElementById("employee-name-error"), isNameValid, "Name must be at least 3 characters and contain only letters");
+  setFieldState(surname, document.getElementById("employee-surname-error"), isSurnameValid, "Surname must be at least 3 characters and contain only letters");
+  setFieldState(dob, document.getElementById("employee-dob-error"), isDobValid, "You must be at least 18 years old");
+  setFieldState(position, document.getElementById("employee-position-error"), isPositionValid, "Please select a position");
+  setFieldState(salary, document.getElementById("employee-salary-error"), isSalaryValid, "Salary must be greater than 0");
+
+  const isFormValid =
+    isNameValid &&
+    isSurnameValid &&
+    isDobValid &&
+    isPositionValid &&
+    isSalaryValid;
+
+  employeeAddBtn.disabled = !isFormValid;
+  employeeAddBtn.classList.toggle("active", isFormValid);
+
+  return isFormValid;
+}
+
 projectForm.addEventListener("submit", (e) => {
   e.preventDefault();
+
+  if (!validateProjectForm()) return;
 
   const currentData = getCurrentMonthData();
 
@@ -352,6 +434,9 @@ projectForm.addEventListener("submit", (e) => {
   currentData.projects.push(newProject);
 
   projectForm.reset();
+  projectAddBtn.disabled = true;
+  projectAddBtn.classList.remove("active");
+
   projectPanel.classList.remove("open");
   renderCurrentMonthData();
 });
@@ -359,8 +444,9 @@ projectForm.addEventListener("submit", (e) => {
 employeeForm.addEventListener("submit", (e) => {
   e.preventDefault();
 
-  const currentData = getCurrentMonthData();
+  if (!validateEmployeeForm()) return;
 
+  const currentData = getCurrentMonthData();
   const salary = Number(document.getElementById("employee-salary").value);
 
   const newEmployee = {
@@ -379,37 +465,22 @@ employeeForm.addEventListener("submit", (e) => {
   currentData.employees.push(newEmployee);
 
   employeeForm.reset();
+  employeeAddBtn.disabled = true;
+  employeeAddBtn.classList.remove("active");
+
   employeePanel.classList.remove("open");
   renderCurrentMonthData();
 });
 
- // Add project and employee
-const projectInputs = projectForm.querySelectorAll("input");
-const projectAddBtn = projectForm.querySelector(".panel-add-btn");
-
-function validateProjectForm() {
-  const isValid = [...projectInputs].every(input => input.value.trim() !== "");
-
-  projectAddBtn.disabled = !isValid;
-  projectAddBtn.classList.toggle("active", isValid);
-}
-
-projectInputs.forEach(input => {
+projectForm.querySelectorAll("input").forEach((input) => {
   input.addEventListener("input", validateProjectForm);
+  input.addEventListener("blur", validateProjectForm);
 });
 
-const employeeInputs = employeeForm.querySelectorAll("input, select");
-const employeeAddBtn = employeeForm.querySelector(".panel-add-btn");
-
-function validateEmployeeForm() {
-  const isValid = [...employeeInputs].every(input => input.value.trim() !== "");
-
-  employeeAddBtn.disabled = !isValid;
-  employeeAddBtn.classList.toggle("active", isValid);
-}
-
-employeeInputs.forEach(input => {
+employeeForm.querySelectorAll("input, select").forEach((input) => {
   input.addEventListener("input", validateEmployeeForm);
+  input.addEventListener("change", validateEmployeeForm);
+  input.addEventListener("blur", validateEmployeeForm);
 });
 
 // Seed modal
