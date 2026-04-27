@@ -140,13 +140,58 @@ function getIncomeClass(amount) {
   return amount >= 0 ? "positive-income" : "negative-income";
 }
 
+// Sort and filter state
+let projectSort = { key: null, direction: "asc" };
+let employeeSort = { key: null, direction: "asc" };
+
+let projectFilters = {};
+let employeeFilters = {};
+
+function sortData(data, sortState) {
+  if (!sortState.key) return data;
+
+  return [...data].sort((a, b) => {
+    let aVal = a[sortState.key];
+    let bVal = b[sortState.key];
+
+    if (sortState.key === "employeeCapacity") {
+      aVal = a.employeeCapacityUsed / a.employeeCapacityTotal;
+      bVal = b.employeeCapacityUsed / b.employeeCapacityTotal;
+    }
+
+    if (typeof aVal === "string") {
+      aVal = aVal.toLowerCase();
+      bVal = bVal.toLowerCase();
+    }
+
+    if (aVal < bVal) return sortState.direction === "asc" ? -1 : 1;
+    if (aVal > bVal) return sortState.direction === "asc" ? 1 : -1;
+    return 0;
+  });
+}
+
+function filterData(data, filters) {
+  return data.filter((item) => {
+    return Object.keys(filters).every((key) => {
+      if (!filters[key]) return true;
+
+      return String(item[key])
+        .toLowerCase()
+        .includes(filters[key].toLowerCase());
+    });
+  });
+}
+
 // Projects table
 const projectsTableBody = document.getElementById("projects-table-body");
 
 function renderProjectsTable(projectsToRender) {
   projectsTableBody.innerHTML = "";
 
-  projectsToRender.forEach((project) => {
+  let data = filterData(projectsToRender, projectFilters);
+  data = sortData(data, projectSort);
+
+  data.forEach((project) => {
     const row = document.createElement("tr");
 
     row.innerHTML = `
@@ -171,7 +216,10 @@ const employeesTableBody = document.getElementById("employees-table-body");
 function renderEmployeesTable(employeesToRender) {
   employeesTableBody.innerHTML = "";
 
-  employeesToRender.forEach((employee) => {
+  let data = filterData(employeesToRender, employeeFilters);
+  data = sortData(data, employeeSort);
+
+  data.forEach((employee) => {
     const row = document.createElement("tr");
 
     row.innerHTML = `
@@ -201,7 +249,7 @@ function renderEmployeesTable(employeesToRender) {
   });
 }
 
-// Month switching
+// Month and year switching
 const monthSelect = document.getElementById("month-select");
 const yearSelect = document.getElementById("year-select");
 const totalIncomeBlock = document.getElementById("projects-total-income");
@@ -232,6 +280,155 @@ function renderCurrentMonthData() {
 
 monthSelect.addEventListener("change", renderCurrentMonthData);
 yearSelect.addEventListener("change", renderCurrentMonthData);
+
+// Table sorting
+function setupTableSorting(tableId, sortState) {
+  const table = document.getElementById(tableId);
+
+  table.addEventListener("click", (e) => {
+    if (e.target.classList.contains("filter-icon")) return;
+
+    const th = e.target.closest("th.sortable");
+    if (!th) return;
+
+    const key = th.dataset.sort;
+
+    if (sortState.key === key) {
+      sortState.direction = sortState.direction === "asc" ? "desc" : "asc";
+    } else {
+      sortState.key = key;
+      sortState.direction = "asc";
+    }
+
+    renderCurrentMonthData();
+  });
+}
+
+setupTableSorting("projects-table", projectSort);
+setupTableSorting("employees-table", employeeSort);
+
+// Filter popup
+let currentFilterPopup = null;
+
+function closeFilterPopup() {
+  if (currentFilterPopup) {
+    currentFilterPopup.remove();
+    currentFilterPopup = null;
+  }
+}
+
+function openFilterPopup(icon, tableType, key) {
+  closeFilterPopup();
+
+  const popup = document.createElement("div");
+  popup.className = "filter-popup";
+
+  const currentValue =
+    tableType === "projects"
+      ? projectFilters[key] || ""
+      : employeeFilters[key] || "";
+
+  popup.innerHTML = `
+    <input type="text" class="filter-input" placeholder="Filter by ${key}..." value="${currentValue}">
+    <div class="filter-popup-actions">
+      <button type="button" class="filter-apply-btn">Apply</button>
+      <button type="button" class="filter-cancel-btn">Cancel</button>
+    </div>
+  `;
+
+  document.body.appendChild(popup);
+
+  const rect = icon.getBoundingClientRect();
+
+  popup.style.top = `${rect.bottom + window.scrollY + 10}px`;
+  popup.style.left = `${rect.left + window.scrollX - 20}px`;
+
+  currentFilterPopup = popup;
+
+  const input = popup.querySelector(".filter-input");
+  const applyBtn = popup.querySelector(".filter-apply-btn");
+  const cancelBtn = popup.querySelector(".filter-cancel-btn");
+
+  input.focus();
+
+  applyBtn.addEventListener("click", () => {
+    const value = input.value.trim();
+
+    if (tableType === "projects") {
+      if (value === "") {
+        delete projectFilters[key];
+      } else {
+        projectFilters[key] = value;
+      }
+    }
+
+    if (tableType === "employees") {
+      if (value === "") {
+        delete employeeFilters[key];
+      } else {
+        employeeFilters[key] = value;
+      }
+    }
+
+    closeFilterPopup();
+    renderCurrentMonthData();
+  });
+
+  cancelBtn.addEventListener("click", () => {
+    if (tableType === "projects") {
+      delete projectFilters[key];
+    }
+
+    if (tableType === "employees") {
+      delete employeeFilters[key];
+    }
+
+    closeFilterPopup();
+    renderCurrentMonthData();
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      applyBtn.click();
+    }
+
+    if (e.key === "Escape") {
+      closeFilterPopup();
+    }
+  });
+}
+
+document.querySelectorAll("#projects-table .filter-icon").forEach((icon) => {
+  icon.addEventListener("click", (e) => {
+    e.stopPropagation();
+
+    const th = icon.closest("th");
+    const key = th.dataset.filter;
+
+    openFilterPopup(icon, "projects", key);
+  });
+});
+
+document.querySelectorAll("#employees-table .filter-icon").forEach((icon) => {
+  icon.addEventListener("click", (e) => {
+    e.stopPropagation();
+
+    const th = icon.closest("th");
+    const key = th.dataset.filter;
+
+    openFilterPopup(icon, "employees", key);
+  });
+});
+
+document.addEventListener("click", (e) => {
+  if (
+    currentFilterPopup &&
+    !currentFilterPopup.contains(e.target) &&
+    !e.target.classList.contains("filter-icon")
+  ) {
+    closeFilterPopup();
+  }
+});
 
 // Sidebar
 const sidePanel = document.getElementById("side-panel");
@@ -300,7 +497,7 @@ cancelEmployeeBtn.addEventListener("click", () => {
   employeePanel.classList.remove("open");
 });
 
-// Add project and employee forms
+// Forms
 const projectForm = document.getElementById("project-form");
 const employeeForm = document.getElementById("employee-form");
 
