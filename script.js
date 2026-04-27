@@ -142,6 +142,15 @@ const monthlyData = {
   },
 };
 
+// Sort and filter state
+let projectSort = { key: null, direction: "asc" };
+let employeeSort = { key: null, direction: "asc" };
+
+let projectFilters = {};
+let employeeFilters = {};
+
+let currentFilterPopup = null;
+
 // Helpers
 function formatCurrency(amount) {
   return `$${amount.toFixed(2)}`;
@@ -151,12 +160,39 @@ function getIncomeClass(amount) {
   return amount >= 0 ? "positive-income" : "negative-income";
 }
 
-// Sort and filter state
-let projectSort = { key: null, direction: "asc" };
-let employeeSort = { key: null, direction: "asc" };
+function getCurrentPeriodKey() {
+  return `${yearSelect.value}-${monthSelect.value}`;
+}
 
-let projectFilters = {};
-let employeeFilters = {};
+function getCurrentMonthData() {
+  const key = getCurrentPeriodKey();
+
+  if (!monthlyData[key]) {
+    monthlyData[key] = {
+      projects: [],
+      employees: [],
+    };
+  }
+
+  return monthlyData[key];
+}
+
+function calculateAge(dateOfBirth) {
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDifference = today.getMonth() - birthDate.getMonth();
+
+  if (
+    monthDifference < 0 ||
+    (monthDifference === 0 && today.getDate() < birthDate.getDate())
+  ) {
+    age--;
+  }
+
+  return age;
+}
 
 function sortData(data, sortState) {
   if (!sortState.key) return data;
@@ -193,8 +229,9 @@ function filterData(data, filters) {
   });
 }
 
-// Projects table
+// Tables
 const projectsTableBody = document.getElementById("projects-table-body");
+const employeesTableBody = document.getElementById("employees-table-body");
 
 function renderProjectsTable(projectsToRender) {
   projectsTableBody.innerHTML = "";
@@ -202,7 +239,7 @@ function renderProjectsTable(projectsToRender) {
   let data = filterData(projectsToRender, projectFilters);
   data = sortData(data, projectSort);
 
-  data.forEach((project, index) => {
+  data.forEach((project) => {
     const row = document.createElement("tr");
 
     row.innerHTML = `
@@ -214,14 +251,14 @@ function renderProjectsTable(projectsToRender) {
       <td class="${getIncomeClass(project.estimatedIncome)}">
         ${formatCurrency(project.estimatedIncome)}
       </td>
-      <td><button class="delete-btn" data-id="${project.id}" data-type="project">Delete</button></td>    `;
+      <td>
+        <button class="delete-btn" data-id="${project.id}" data-type="project">Delete</button>
+      </td>
+    `;
 
     projectsTableBody.appendChild(row);
   });
 }
-
-// Employees table
-const employeesTableBody = document.getElementById("employees-table-body");
 
 function renderEmployeesTable(employeesToRender) {
   employeesTableBody.innerHTML = "";
@@ -229,7 +266,7 @@ function renderEmployeesTable(employeesToRender) {
   let data = filterData(employeesToRender, employeeFilters);
   data = sortData(data, employeeSort);
 
-  data.forEach((employee, index) => {
+  data.forEach((employee) => {
     const row = document.createElement("tr");
 
     row.innerHTML = `
@@ -251,66 +288,18 @@ function renderEmployeesTable(employeesToRender) {
       <td>
         <button class="availability-btn">Availability</button>
         <button class="assign-btn">Assign</button>
-        <button class="delete-btn" data-id="${employee.id}" data-type="employee">Delete</button>      </td>
+        <button class="delete-btn" data-id="${employee.id}" data-type="employee">Delete</button>
+      </td>
     `;
 
     employeesTableBody.appendChild(row);
   });
 }
 
-// Delete project or employee
-projectsTableBody.addEventListener("click", (e) => {
-  if (!e.target.classList.contains("delete-btn")) return;
-
-  const projectId = e.target.dataset.id;
-  const currentData = getCurrentMonthData();
-
-  const project = currentData.projects.find((project) => project.id === projectId);
-  if (!project) return;
-
-  const isConfirmed = confirm(`Delete project "${project.projectName}"?`);
-  if (!isConfirmed) return;
-
-  currentData.projects = currentData.projects.filter(
-    (project) => project.id !== projectId
-  );
-
-  renderCurrentMonthData();
-});
-
-employeesTableBody.addEventListener("click", (e) => {
-  if (!e.target.classList.contains("delete-btn")) return;
-
-  const employeeId = e.target.dataset.id;
-  const currentData = getCurrentMonthData();
-
-  const employee = currentData.employees.find(
-    (employee) => employee.id === employeeId
-  );
-
-  if (!employee) return;
-
-  const isConfirmed = confirm(
-    `Delete employee "${employee.name} ${employee.surname}"?`
-  );
-
-  if (!isConfirmed) return;
-
-  currentData.employees = currentData.employees.filter(
-    (employee) => employee.id !== employeeId
-  );
-
-  renderCurrentMonthData();
-});
-
 // Month and year switching
 const monthSelect = document.getElementById("month-select");
 const yearSelect = document.getElementById("year-select");
 const totalIncomeBlock = document.getElementById("projects-total-income");
-
-function getCurrentPeriodKey() {
-  return `${yearSelect.value}-${monthSelect.value}`;
-}
 
 function renderCurrentMonthData() {
   const key = getCurrentPeriodKey();
@@ -326,10 +315,7 @@ function renderCurrentMonthData() {
   renderProjectsTable(data.projects);
   renderEmployeesTable(data.employees);
 
-  totalIncomeBlock.classList.toggle(
-    "hidden",
-    data.projects.length === 0
-  );
+  totalIncomeBlock.classList.toggle("hidden", data.projects.length === 0);
 }
 
 monthSelect.addEventListener("change", renderCurrentMonthData);
@@ -362,8 +348,6 @@ setupTableSorting("projects-table", projectSort);
 setupTableSorting("employees-table", employeeSort);
 
 // Filter popup
-let currentFilterPopup = null;
-
 function closeFilterPopup() {
   if (currentFilterPopup) {
     currentFilterPopup.remove();
@@ -408,20 +392,12 @@ function openFilterPopup(icon, tableType, key) {
   applyBtn.addEventListener("click", () => {
     const value = input.value.trim();
 
-    if (tableType === "projects") {
-      if (value === "") {
-        delete projectFilters[key];
-      } else {
-        projectFilters[key] = value;
-      }
-    }
+    const filters = tableType === "projects" ? projectFilters : employeeFilters;
 
-    if (tableType === "employees") {
-      if (value === "") {
-        delete employeeFilters[key];
-      } else {
-        employeeFilters[key] = value;
-      }
+    if (value === "") {
+      delete filters[key];
+    } else {
+      filters[key] = value;
     }
 
     closeFilterPopup();
@@ -429,13 +405,9 @@ function openFilterPopup(icon, tableType, key) {
   });
 
   cancelBtn.addEventListener("click", () => {
-    if (tableType === "projects") {
-      delete projectFilters[key];
-    }
+    const filters = tableType === "projects" ? projectFilters : employeeFilters;
 
-    if (tableType === "employees") {
-      delete employeeFilters[key];
-    }
+    delete filters[key];
 
     closeFilterPopup();
     renderCurrentMonthData();
@@ -482,6 +454,51 @@ document.addEventListener("click", (e) => {
   ) {
     closeFilterPopup();
   }
+});
+
+// Delete project or employee
+projectsTableBody.addEventListener("click", (e) => {
+  if (!e.target.classList.contains("delete-btn")) return;
+
+  const projectId = e.target.dataset.id;
+  const currentData = getCurrentMonthData();
+
+  const project = currentData.projects.find((project) => project.id === projectId);
+  if (!project) return;
+
+  const isConfirmed = confirm(`Delete project "${project.projectName}"?`);
+  if (!isConfirmed) return;
+
+  currentData.projects = currentData.projects.filter(
+    (project) => project.id !== projectId
+  );
+
+  renderCurrentMonthData();
+});
+
+employeesTableBody.addEventListener("click", (e) => {
+  if (!e.target.classList.contains("delete-btn")) return;
+
+  const employeeId = e.target.dataset.id;
+  const currentData = getCurrentMonthData();
+
+  const employee = currentData.employees.find(
+    (employee) => employee.id === employeeId
+  );
+
+  if (!employee) return;
+
+  const isConfirmed = confirm(
+    `Delete employee "${employee.name} ${employee.surname}"?`
+  );
+
+  if (!isConfirmed) return;
+
+  currentData.employees = currentData.employees.filter(
+    (employee) => employee.id !== employeeId
+  );
+
+  renderCurrentMonthData();
 });
 
 // Sidebar
@@ -560,36 +577,6 @@ const employeeAddBtn = employeeForm.querySelector(".panel-add-btn");
 
 projectAddBtn.disabled = true;
 employeeAddBtn.disabled = true;
-
-function getCurrentMonthData() {
-  const key = getCurrentPeriodKey();
-
-  if (!monthlyData[key]) {
-    monthlyData[key] = {
-      projects: [],
-      employees: [],
-    };
-  }
-
-  return monthlyData[key];
-}
-
-function calculateAge(dateOfBirth) {
-  const today = new Date();
-  const birthDate = new Date(dateOfBirth);
-
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDifference = today.getMonth() - birthDate.getMonth();
-
-  if (
-    monthDifference < 0 ||
-    (monthDifference === 0 && today.getDate() < birthDate.getDate())
-  ) {
-    age--;
-  }
-
-  return age;
-}
 
 function setFieldState(input, errorElement, isValid, message) {
   if (isValid) {
@@ -673,6 +660,7 @@ projectForm.addEventListener("submit", (e) => {
   const currentData = getCurrentMonthData();
 
   const newProject = {
+    id: crypto.randomUUID(),
     companyName: document.getElementById("company-name").value,
     projectName: document.getElementById("project-name").value,
     budget: Number(document.getElementById("project-budget").value),
@@ -701,6 +689,7 @@ employeeForm.addEventListener("submit", (e) => {
   const salary = Number(document.getElementById("employee-salary").value);
 
   const newEmployee = {
+    id: crypto.randomUUID(),
     name: document.getElementById("employee-name").value,
     surname: document.getElementById("employee-surname").value,
     age: calculateAge(document.getElementById("employee-dob").value),
