@@ -1,6 +1,7 @@
 // Initial data
 const projects = [
   {
+    id: "project-1",
     companyName: "DataViz Inc",
     projectName: "Analytics Dashboard",
     budget: 7900,
@@ -10,6 +11,7 @@ const projects = [
     estimatedIncome: -1250,
   },
   {
+    id: "project-2",
     companyName: "SalesPro",
     projectName: "CRM System",
     budget: 10000,
@@ -19,6 +21,7 @@ const projects = [
     estimatedIncome: -775,
   },
   {
+    id: "project-3",
     companyName: "TechCorp",
     projectName: "E-Commerce Platform",
     budget: 12500,
@@ -28,6 +31,7 @@ const projects = [
     estimatedIncome: -3958.33,
   },
   {
+    id: "project-4",
     companyName: "MediCare Solutions",
     projectName: "Healthcare Portal",
     budget: 15000,
@@ -37,6 +41,7 @@ const projects = [
     estimatedIncome: -4325,
   },
   {
+    id: "project-5",
     companyName: "TechCorp",
     projectName: "Mobile Banking App",
     budget: 16650,
@@ -46,6 +51,7 @@ const projects = [
     estimatedIncome: 2767.5,
   },
   {
+    id: "project-6",
     companyName: "GreenSoft",
     projectName: "Sustainability Tracker",
     budget: 9200,
@@ -58,6 +64,7 @@ const projects = [
 
 const employees = [
   {
+    id: "employee-1",
     name: "John",
     surname: "Smith",
     age: 29,
@@ -70,6 +77,7 @@ const employees = [
     projectedIncome: 208.33,
   },
   {
+    id: "employee-2",
     name: "Sarah",
     surname: "Johnson",
     age: 32,
@@ -82,6 +90,7 @@ const employees = [
     projectedIncome: -1233.33,
   },
   {
+    id: "employee-3",
     name: "Michael",
     surname: "Williams",
     age: 35,
@@ -94,6 +103,7 @@ const employees = [
     projectedIncome: -2933.33,
   },
   {
+    id: "employee-4",
     name: "Emily",
     surname: "Brown",
     age: 29,
@@ -106,6 +116,7 @@ const employees = [
     projectedIncome: 2342.5,
   },
   {
+    id: "employee-5",
     name: "Daniel",
     surname: "Miller",
     age: 38,
@@ -191,7 +202,7 @@ function renderProjectsTable(projectsToRender) {
   let data = filterData(projectsToRender, projectFilters);
   data = sortData(data, projectSort);
 
-  data.forEach((project) => {
+  data.forEach((project, index) => {
     const row = document.createElement("tr");
 
     row.innerHTML = `
@@ -203,8 +214,7 @@ function renderProjectsTable(projectsToRender) {
       <td class="${getIncomeClass(project.estimatedIncome)}">
         ${formatCurrency(project.estimatedIncome)}
       </td>
-      <td><button class="delete-btn">Delete</button></td>
-    `;
+      <td><button class="delete-btn" data-id="${project.id}" data-type="project">Delete</button></td>    `;
 
     projectsTableBody.appendChild(row);
   });
@@ -219,7 +229,7 @@ function renderEmployeesTable(employeesToRender) {
   let data = filterData(employeesToRender, employeeFilters);
   data = sortData(data, employeeSort);
 
-  data.forEach((employee) => {
+  data.forEach((employee, index) => {
     const row = document.createElement("tr");
 
     row.innerHTML = `
@@ -241,13 +251,57 @@ function renderEmployeesTable(employeesToRender) {
       <td>
         <button class="availability-btn">Availability</button>
         <button class="assign-btn">Assign</button>
-        <button class="delete-btn">Delete</button>
-      </td>
+        <button class="delete-btn" data-id="${employee.id}" data-type="employee">Delete</button>      </td>
     `;
 
     employeesTableBody.appendChild(row);
   });
 }
+
+// Delete project or employee
+projectsTableBody.addEventListener("click", (e) => {
+  if (!e.target.classList.contains("delete-btn")) return;
+
+  const projectId = e.target.dataset.id;
+  const currentData = getCurrentMonthData();
+
+  const project = currentData.projects.find((project) => project.id === projectId);
+  if (!project) return;
+
+  const isConfirmed = confirm(`Delete project "${project.projectName}"?`);
+  if (!isConfirmed) return;
+
+  currentData.projects = currentData.projects.filter(
+    (project) => project.id !== projectId
+  );
+
+  renderCurrentMonthData();
+});
+
+employeesTableBody.addEventListener("click", (e) => {
+  if (!e.target.classList.contains("delete-btn")) return;
+
+  const employeeId = e.target.dataset.id;
+  const currentData = getCurrentMonthData();
+
+  const employee = currentData.employees.find(
+    (employee) => employee.id === employeeId
+  );
+
+  if (!employee) return;
+
+  const isConfirmed = confirm(
+    `Delete employee "${employee.name} ${employee.surname}"?`
+  );
+
+  if (!isConfirmed) return;
+
+  currentData.employees = currentData.employees.filter(
+    (employee) => employee.id !== employeeId
+  );
+
+  renderCurrentMonthData();
+});
 
 // Month and year switching
 const monthSelect = document.getElementById("month-select");
