@@ -273,8 +273,8 @@ function renderEmployeesTable(employeesToRender) {
       <td>${employee.name}</td>
       <td>${employee.surname}</td>
       <td>${employee.age}</td>
-      <td>${employee.position}</td>
-      <td>${formatCurrency(employee.salary)}</td>
+      <td class="editable-position" data-id="${employee.id}">${employee.position} <span class="edit-icon">✎</span></td>
+      <td class="editable-salary" data-id="${employee.id}">${formatCurrency(employee.salary)} <span class="edit-icon">✎</span></td>
       <td>${formatCurrency(employee.estimatedPayment)}</td>
       <td>
         <button class="show-btn">
@@ -500,6 +500,119 @@ employeesTableBody.addEventListener("click", (e) => {
 
   renderCurrentMonthData();
 });
+
+// Inline editing for employee position and salary
+employeesTableBody.addEventListener("click", (e) => {
+  if (
+    e.target.classList.contains("inline-select") ||
+    e.target.classList.contains("inline-input")
+  ) {
+    return;
+  }
+
+  const positionCell = e.target.closest(".editable-position");
+  const salaryCell = e.target.closest(".editable-salary");
+
+  if (positionCell) {
+    editEmployeePosition(positionCell);
+  }
+
+  if (salaryCell) {
+    editEmployeeSalary(salaryCell);
+  }
+});
+
+function editEmployeePosition(cell) {
+  const employeeId = cell.dataset.id;
+  const currentData = getCurrentMonthData();
+
+  const employee = currentData.employees.find(
+    (employee) => employee.id === employeeId
+  );
+
+  if (!employee) return;
+
+  cell.innerHTML = `
+    <select class="inline-select">
+      <option value="Junior">Junior</option>
+      <option value="Middle">Middle</option>
+      <option value="Senior">Senior</option>
+      <option value="Lead">Lead</option>
+      <option value="Architect">Architect</option>
+      <option value="BO">BO</option>
+    </select>
+  `;
+
+  const select = cell.querySelector(".inline-select");
+  select.value = employee.position;
+  select.focus();
+
+  select.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+
+  select.addEventListener("change", () => {
+    employee.position = select.value;
+    renderCurrentMonthData();
+  });
+}
+
+function editEmployeeSalary(cell) {
+  const employeeId = cell.dataset.id;
+  const currentData = getCurrentMonthData();
+
+  const employee = currentData.employees.find(
+    (employee) => employee.id === employeeId
+  );
+
+  if (!employee) return;
+
+  cell.innerHTML = `
+    <input
+      type="number"
+      class="inline-input"
+      value="${employee.salary}"
+      min="0"
+      step="0.01"
+    >
+  `;
+
+  const input = cell.querySelector(".inline-input");
+  input.focus();
+  input.select();
+
+  input.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+
+  function saveSalary() {
+    const newSalary = Number(input.value);
+
+    if (newSalary <= 0) {
+      renderCurrentMonthData();
+      return;
+    }
+
+    employee.salary = newSalary;
+    employee.estimatedPayment = newSalary;
+
+    renderCurrentMonthData();
+  }
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      saveSalary();
+    }
+
+    if (e.key === "Escape") {
+      renderCurrentMonthData();
+    }
+  });
+
+  input.addEventListener("blur", () => {
+    saveSalary();
+  });
+}
 
 // Sidebar
 const sidePanel = document.getElementById("side-panel");
