@@ -1,3 +1,5 @@
+const STORAGE_KEY = "employee-project-dashboard-data";
+
 // Initial data
 const projects = [
   {
@@ -142,6 +144,27 @@ const monthlyData = {
   },
 };
 
+// localStorage
+function saveToLocalStorage() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(monthlyData));
+}
+
+function loadFromLocalStorage() {
+  const savedData = localStorage.getItem(STORAGE_KEY);
+
+  if (!savedData) return;
+
+  try {
+    const parsedData = JSON.parse(savedData);
+
+    Object.keys(parsedData).forEach((key) => {
+      monthlyData[key] = parsedData[key];
+    });
+  } catch (error) {
+    console.error("Could not load data from localStorage", error);
+  }
+}
+
 // Sort and filter state
 let projectSort = { key: null, direction: "asc" };
 let employeeSort = { key: null, direction: "asc" };
@@ -172,6 +195,8 @@ function getCurrentMonthData() {
       projects: [],
       employees: [],
     };
+
+    saveToLocalStorage();
   }
 
   return monthlyData[key];
@@ -273,8 +298,12 @@ function renderEmployeesTable(employeesToRender) {
       <td>${employee.name}</td>
       <td>${employee.surname}</td>
       <td>${employee.age}</td>
-      <td class="editable-position" data-id="${employee.id}">${employee.position} <span class="edit-icon">✎</span></td>
-      <td class="editable-salary" data-id="${employee.id}">${formatCurrency(employee.salary)} <span class="edit-icon">✎</span></td>
+      <td class="editable-position" data-id="${employee.id}">
+        ${employee.position} <span class="edit-icon">✎</span>
+      </td>
+      <td class="editable-salary" data-id="${employee.id}">
+        ${formatCurrency(employee.salary)} <span class="edit-icon">✎</span>
+      </td>
       <td>${formatCurrency(employee.estimatedPayment)}</td>
       <td>
         <button class="show-btn">
@@ -391,7 +420,6 @@ function openFilterPopup(icon, tableType, key) {
 
   applyBtn.addEventListener("click", () => {
     const value = input.value.trim();
-
     const filters = tableType === "projects" ? projectFilters : employeeFilters;
 
     if (value === "") {
@@ -473,6 +501,7 @@ projectsTableBody.addEventListener("click", (e) => {
     (project) => project.id !== projectId
   );
 
+  saveToLocalStorage();
   renderCurrentMonthData();
 });
 
@@ -498,6 +527,7 @@ employeesTableBody.addEventListener("click", (e) => {
     (employee) => employee.id !== employeeId
   );
 
+  saveToLocalStorage();
   renderCurrentMonthData();
 });
 
@@ -553,6 +583,7 @@ function editEmployeePosition(cell) {
 
   select.addEventListener("change", () => {
     employee.position = select.value;
+    saveToLocalStorage();
     renderCurrentMonthData();
   });
 }
@@ -596,6 +627,7 @@ function editEmployeeSalary(cell) {
     employee.salary = newSalary;
     employee.estimatedPayment = newSalary;
 
+    saveToLocalStorage();
     renderCurrentMonthData();
   }
 
@@ -640,6 +672,7 @@ const employeesContent = document.getElementById("employees-content");
 
 navProjects.addEventListener("click", (e) => {
   e.preventDefault();
+
   projectsContent.classList.remove("hidden-section");
   employeesContent.classList.add("hidden-section");
 
@@ -649,6 +682,7 @@ navProjects.addEventListener("click", (e) => {
 
 navEmployees.addEventListener("click", (e) => {
   e.preventDefault();
+
   employeesContent.classList.remove("hidden-section");
   projectsContent.classList.add("hidden-section");
 
@@ -785,6 +819,8 @@ projectForm.addEventListener("submit", (e) => {
 
   currentData.projects.push(newProject);
 
+  saveToLocalStorage();
+
   projectForm.reset();
   projectAddBtn.disabled = true;
   projectAddBtn.classList.remove("active");
@@ -807,7 +843,7 @@ employeeForm.addEventListener("submit", (e) => {
     surname: document.getElementById("employee-surname").value,
     age: calculateAge(document.getElementById("employee-dob").value),
     position: document.getElementById("employee-position").value,
-    salary: salary,
+    salary,
     estimatedPayment: salary * 0.5,
     assignmentsCount: 0,
     capacityUsed: 0,
@@ -816,6 +852,8 @@ employeeForm.addEventListener("submit", (e) => {
   };
 
   currentData.employees.push(newEmployee);
+
+  saveToLocalStorage();
 
   employeeForm.reset();
   employeeAddBtn.disabled = true;
@@ -856,4 +894,5 @@ function closeModal() {
 }
 
 // Init
+loadFromLocalStorage();
 renderCurrentMonthData();
