@@ -1040,6 +1040,7 @@ const seedModal = document.getElementById("seed-modal");
 const seedTableBody = document.getElementById("seed-table-body");
 const overlay = document.getElementById("seed-overlay");
 const closeSeedModal = document.getElementById("close-seed-modal");
+const currentSeedPeriod = document.getElementById("current-seed-period");
 
 function renderSeedTable() {
   seedTableBody.innerHTML = "";
@@ -1077,6 +1078,12 @@ function renderSeedTable() {
 
 seedBtn.addEventListener("click", () => {
   renderSeedTable();
+
+  const year = yearSelect.value;
+  const month = monthNames[Number(monthSelect.value)];
+
+  currentSeedPeriod.textContent = `${month} ${year}`;
+
   seedModal.classList.remove("hidden");
   overlay.classList.remove("hidden");
 });
