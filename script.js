@@ -175,6 +175,23 @@ let employeeFilters = {};
 
 let currentFilterPopup = null;
 
+function updateSortIcons(tableId, sortState) {
+  const table = document.getElementById(tableId);
+
+  table.querySelectorAll("th.sortable").forEach(th => {
+    const icon = th.querySelector(".sort-icon");
+    const key = th.dataset.sort;
+
+    if (!icon) return;
+
+    if (sortState.key === key) {
+      icon.textContent = sortState.direction === "asc" ? "↑" : "↓";
+    } else {
+      icon.textContent = "⇅";
+    }
+  });
+}
+
 // Helpers
 function formatCurrency(amount) {
   return `$${amount.toFixed(2)}`;
@@ -448,6 +465,7 @@ function setupTableSorting(tableId, sortState) {
     }
 
     renderCurrentMonthData();
+    updateSortIcons(tableId, sortState);
   });
 }
 
@@ -752,15 +770,15 @@ function restoreActiveTab() {
   const activeTab = localStorage.getItem(ACTIVE_TAB_KEY);
 
   if (activeTab === "employees") {
-    employeesContent.classList.remove("hidden-section");
-    projectsContent.classList.add("hidden-section");
+    employeesContent.classList.remove("hidden");
+    projectsContent.classList.add("hidden");
 
     navEmployees.classList.add("active");
     navProjects.classList.remove("active");
   } else {
     // default
-    projectsContent.classList.remove("hidden-section");
-    employeesContent.classList.add("hidden-section");
+    projectsContent.classList.remove("hidden");
+    employeesContent.classList.add("hidden");
 
     navProjects.classList.add("active");
     navEmployees.classList.remove("active");
@@ -770,8 +788,8 @@ function restoreActiveTab() {
 navProjects.addEventListener("click", (e) => {
   e.preventDefault();
 
-  projectsContent.classList.remove("hidden-section");
-  employeesContent.classList.add("hidden-section");
+  projectsContent.classList.remove("hidden");
+  employeesContent.classList.add("hidden");
 
   navProjects.classList.add("active");
   navEmployees.classList.remove("active");
@@ -782,8 +800,8 @@ navProjects.addEventListener("click", (e) => {
 navEmployees.addEventListener("click", (e) => {
   e.preventDefault();
 
-  employeesContent.classList.remove("hidden-section");
-  projectsContent.classList.add("hidden-section");
+  employeesContent.classList.remove("hidden");
+  projectsContent.classList.add("hidden");
 
   navEmployees.classList.add("active");
   navProjects.classList.remove("active");
@@ -998,3 +1016,5 @@ function closeModal() {
 loadFromLocalStorage();
 restoreActiveTab();
 renderCurrentMonthData();
+updateSortIcons("projects-table", projectSort);
+updateSortIcons("employees-table", employeeSort);
