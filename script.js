@@ -254,6 +254,48 @@ function filterData(data, filters) {
   });
 }
 
+// Calculations
+function getWorkingDaysInMonth(year, month) {
+  const date = new Date(year, month, 1);
+  let count = 0;
+
+  while (date.getMonth() === month) {
+    const day = date.getDay();
+    if (day !== 0 && day !== 6) count++;
+    date.setDate(date.getDate() + 1);
+  }
+
+  return count;
+}
+
+function getVacationCoefficient(vacationDays = [], year, month) {
+  const workingDays = getWorkingDaysInMonth(year, month);
+
+  const vacationWorkingDays = vacationDays.filter(dateStr => {
+    const date = new Date(dateStr);
+    const day = date.getDay();
+    return day !== 0 && day !== 6;
+  }).length;
+
+  return (workingDays - vacationWorkingDays) / workingDays;
+}
+
+function getEffectiveCapacity(assignedCapacity, fit, vacationCoefficient) {
+  return assignedCapacity * fit * vacationCoefficient;
+}
+
+function getEmployeeCost(salary, assignedCapacity) {
+  return salary * Math.max(0.5, assignedCapacity);
+}
+
+function getBenchCost(salary) {
+  return salary * 0.5;
+}
+
+function calculateProjectProfit(project) {
+  return project.estimatedIncome || 0;
+}
+
 // Tables
 const projectsTableBody = document.getElementById("projects-table-body");
 const employeesTableBody = document.getElementById("employees-table-body");
@@ -266,6 +308,7 @@ function renderProjectsTable(projectsToRender) {
 
   data.forEach((project) => {
     const row = document.createElement("tr");
+    const profit = calculateProjectProfit(project);
 
     row.innerHTML = `
       <td>${project.companyName}</td>
@@ -273,8 +316,8 @@ function renderProjectsTable(projectsToRender) {
       <td>${formatCurrency(project.budget)}</td>
       <td>${project.employeeCapacityUsed.toFixed(1)}/${project.employeeCapacityTotal}</td>
       <td><button class="show-btn">Show Employees (${project.employeesCount})</button></td>
-      <td class="${getIncomeClass(project.estimatedIncome)}">
-        ${formatCurrency(project.estimatedIncome)}
+      <td class="${getIncomeClass(profit)}">
+        ${formatCurrency(profit)}
       </td>
       <td>
         <button class="delete-btn" data-id="${project.id}" data-type="project">Delete</button>
