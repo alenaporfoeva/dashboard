@@ -1,4 +1,5 @@
 const STORAGE_KEY = "employee-project-dashboard-data";
+const ACTIVE_TAB_KEY = "active-tab";
 
 // Initial data
 const projects = [
@@ -296,6 +297,26 @@ function calculateProjectProfit(project) {
   return project.estimatedIncome || 0;
 }
 
+function calculateTotalEstimatedIncome(projects, employees) {
+  const projectsIncome = projects.reduce((sum, project) => {
+    return sum + calculateProjectProfit(project);
+  }, 0);
+
+  const benchPayments = employees.reduce((sum, employee) => {
+    if (employee.assignmentsCount === 0) {
+      return sum + getBenchCost(employee.salary);
+    }
+
+    return sum;
+  }, 0);
+
+  return {
+    totalIncome: projectsIncome - benchPayments,
+    benchPayments,
+  };
+}
+
+
 // Tables
 const projectsTableBody = document.getElementById("projects-table-body");
 const employeesTableBody = document.getElementById("employees-table-body");
@@ -368,10 +389,23 @@ function renderEmployeesTable(employeesToRender) {
   });
 }
 
+// Total income
+function renderTotalEstimatedIncome(projects, employees) {
+  const result = calculateTotalEstimatedIncome(projects, employees);
+
+  totalIncomeAmount.textContent = formatCurrency(result.totalIncome);
+  benchPaymentsText.textContent = `(Bench payments: ${formatCurrency(result.benchPayments)})`;
+
+  totalIncomeAmount.classList.remove("positive-income", "negative-income");
+  totalIncomeAmount.classList.add(getIncomeClass(result.totalIncome));
+}
+
 // Month and year switching
 const monthSelect = document.getElementById("month-select");
 const yearSelect = document.getElementById("year-select");
 const totalIncomeBlock = document.getElementById("projects-total-income");
+const totalIncomeAmount = document.getElementById("total-income-amount");
+const benchPaymentsText = document.getElementById("bench-payments");
 
 function renderCurrentMonthData() {
   const key = getCurrentPeriodKey();
@@ -386,6 +420,7 @@ function renderCurrentMonthData() {
 
   renderProjectsTable(data.projects);
   renderEmployeesTable(data.employees);
+  renderTotalEstimatedIncome(data.projects, data.employees);
 
   totalIncomeBlock.classList.toggle("hidden", data.projects.length === 0);
 }
@@ -713,6 +748,25 @@ const navEmployees = document.getElementById("nav-employees");
 const projectsContent = document.getElementById("projects-content");
 const employeesContent = document.getElementById("employees-content");
 
+function restoreActiveTab() {
+  const activeTab = localStorage.getItem(ACTIVE_TAB_KEY);
+
+  if (activeTab === "employees") {
+    employeesContent.classList.remove("hidden-section");
+    projectsContent.classList.add("hidden-section");
+
+    navEmployees.classList.add("active");
+    navProjects.classList.remove("active");
+  } else {
+    // default
+    projectsContent.classList.remove("hidden-section");
+    employeesContent.classList.add("hidden-section");
+
+    navProjects.classList.add("active");
+    navEmployees.classList.remove("active");
+  }
+}
+
 navProjects.addEventListener("click", (e) => {
   e.preventDefault();
 
@@ -721,6 +775,8 @@ navProjects.addEventListener("click", (e) => {
 
   navProjects.classList.add("active");
   navEmployees.classList.remove("active");
+
+  localStorage.setItem(ACTIVE_TAB_KEY, "projects");
 });
 
 navEmployees.addEventListener("click", (e) => {
@@ -731,6 +787,8 @@ navEmployees.addEventListener("click", (e) => {
 
   navEmployees.classList.add("active");
   navProjects.classList.remove("active");
+
+  localStorage.setItem(ACTIVE_TAB_KEY, "employees");
 });
 
 // Panels
@@ -938,4 +996,5 @@ function closeModal() {
 
 // Init
 loadFromLocalStorage();
+restoreActiveTab();
 renderCurrentMonthData();

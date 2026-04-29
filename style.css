@@ -8,9 +8,6 @@
 
 html {
     scroll-behavior: smooth;
-}
-
-body {
     background-color: #ecf0f1;
 }
 
@@ -273,8 +270,8 @@ tbody tr {
     font-weight: 700;
 }
 
-/* Add project form */
-.project-panel {
+/* Add project and employee form */
+.project-panel, .employee-panel {
     position: fixed;
     top: 0;
     right: -460px;
@@ -340,21 +337,6 @@ tbody tr {
     justify-content: flex-end;
     gap: 12px;
     margin-top: 8px;
-}
-
-/* Add employee button */
-.employee-panel {
-    position: fixed;
-    top: 0;
-    right: -460px;
-    width: 430px;
-    height: 100vh;
-    background-color: #f2f3f5;
-    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.12);
-    transition: right 0.3s ease;
-    z-index: 1200;
-    padding: 30px 24px;
-    overflow-y: auto;
 }
 
 .employee-panel.open {
