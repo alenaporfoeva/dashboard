@@ -147,6 +147,21 @@ const monthlyData = {
   },
 };
 
+const monthNames = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
 // localStorage
 function saveToLocalStorage() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(monthlyData));
@@ -1022,10 +1037,46 @@ employeeForm.querySelectorAll("input, select").forEach((input) => {
 // Seed modal
 const seedBtn = document.getElementById("seed-data-btn");
 const seedModal = document.getElementById("seed-modal");
+const seedTableBody = document.getElementById("seed-table-body");
 const overlay = document.getElementById("seed-overlay");
 const closeSeedModal = document.getElementById("close-seed-modal");
 
+function renderSeedTable() {
+  seedTableBody.innerHTML = "";
+
+  const currentKey = getCurrentPeriodKey();
+
+  Object.keys(monthlyData).forEach((key) => {
+    if (key === currentKey) return;
+
+    const data = monthlyData[key];
+
+    if (data.projects.length === 0 && data.employees.length === 0) return;
+
+    const [year, month] = key.split("-");
+    const result = calculateTotalEstimatedIncome(data.projects, data.employees);
+
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${year}</td>
+      <td>${monthNames[Number(month)]}</td>
+      <td>${data.projects.length}</td>
+      <td>${data.employees.length}</td>
+      <td class="${getIncomeClass(result.totalIncome)}">
+        ${formatCurrency(result.totalIncome)}
+      </td>
+      <td>
+        <button class="seed-btn" data-source-key="${key}">Seed</button>
+      </td>
+    `;
+
+    seedTableBody.appendChild(row);
+  });
+}
+
 seedBtn.addEventListener("click", () => {
+  renderSeedTable();
   seedModal.classList.remove("hidden");
   overlay.classList.remove("hidden");
 });
