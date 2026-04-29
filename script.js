@@ -1,5 +1,7 @@
 const STORAGE_KEY = "employee-project-dashboard-data";
 const ACTIVE_TAB_KEY = "active-tab";
+const SELECTED_MONTH_KEY = "selected-month";
+const SELECTED_YEAR_KEY = "selected-year";
 
 // Initial data
 const projects = [
@@ -218,6 +220,10 @@ function getCurrentMonthData() {
   }
 
   return monthlyData[key];
+}
+
+function cloneData(data) {
+  return JSON.parse(JSON.stringify(data));
 }
 
 function calculateAge(dateOfBirth) {
@@ -442,8 +448,15 @@ function renderCurrentMonthData() {
   totalIncomeBlock.classList.toggle("hidden", data.projects.length === 0);
 }
 
-monthSelect.addEventListener("change", renderCurrentMonthData);
-yearSelect.addEventListener("change", renderCurrentMonthData);
+monthSelect.addEventListener("change", () => {
+  localStorage.setItem(SELECTED_MONTH_KEY, monthSelect.value);
+  renderCurrentMonthData();
+});
+
+yearSelect.addEventListener("change", () => {
+  localStorage.setItem(SELECTED_YEAR_KEY, yearSelect.value);
+  renderCurrentMonthData();
+});
 
 // Table sorting
 function setupTableSorting(tableId, sortState) {
@@ -785,6 +798,19 @@ function restoreActiveTab() {
   }
 }
 
+function restoreSelectedPeriod() {
+  const savedMonth = localStorage.getItem(SELECTED_MONTH_KEY);
+  const savedYear = localStorage.getItem(SELECTED_YEAR_KEY);
+
+  if (savedMonth !== null) {
+    monthSelect.value = savedMonth;
+  }
+
+  if (savedYear !== null) {
+    yearSelect.value = savedYear;
+  }
+}
+
 navProjects.addEventListener("click", (e) => {
   e.preventDefault();
 
@@ -1012,8 +1038,43 @@ function closeModal() {
   overlay.classList.add("hidden");
 }
 
+function seedDataFromMonth(sourceKey) {
+  const currentKey = getCurrentPeriodKey();
+
+  if (sourceKey === currentKey) return;
+
+  const sourceData = monthlyData[sourceKey];
+
+  if (!sourceData) return;
+
+  const isConfirmed = confirm(
+    `Copy data from ${sourceKey} to ${currentKey}? Current month data will be replaced.`
+  );
+
+  if (!isConfirmed) return;
+
+  monthlyData[currentKey] = cloneData(sourceData);
+
+  monthlyData[currentKey].employees.forEach((employee) => {
+    employee.vacationDays = [];
+  });
+
+  saveToLocalStorage();
+  closeModal();
+  renderCurrentMonthData();
+}
+
+seedModal.addEventListener("click", (e) => {
+  if (!e.target.classList.contains("seed-btn")) return;
+
+  const sourceKey = e.target.dataset.sourceKey;
+
+  seedDataFromMonth(sourceKey);
+});
+
 // Init
 loadFromLocalStorage();
+restoreSelectedPeriod();
 restoreActiveTab();
 renderCurrentMonthData();
 updateSortIcons("projects-table", projectSort);
