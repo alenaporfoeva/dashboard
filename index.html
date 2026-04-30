@@ -43,6 +43,10 @@
         <div class="main-content" id="main-content">
             <button id="open-side-panel-button" class="hidden">→</button>
             <div class="content-wrapper">
+                <div id="filters-row" class="filters-row">
+                    <div id="filter-chips" class="filter-chips"></div>
+                    <button id="clear-filters-btn" class="clear-filters hidden">Clear Filters</button>
+                </div>
                 <div id="projects-content">
                     <div class="content-header">
                         <h1>Projects</h1>
@@ -203,7 +207,8 @@
 
         <div class="seed-modal__body">
             <p>
-                Select a month to copy its data to the current month (<strong><span id="current-seed-period"></span>)</strong>:
+                Select a month to copy its data to the current month (<strong><span
+                        id="current-seed-period"></span>)</strong>:
             </p>
 
             <table class="seed-table">

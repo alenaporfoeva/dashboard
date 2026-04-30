@@ -467,6 +467,70 @@ tbody tr {
     font-weight: bold;
 }
 
+/* Filter-chips */
+
+.filters-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 30px 0 24px;
+}
+
+.filter-chips {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 0;
+}
+
+.filter-chip,
+.clear-filters {
+    height: 46px;
+    min-width: 240px;
+    padding: 0 18px 0 22px;
+    border: none;
+    border-radius: 24px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.clear-filters.hidden {
+    display: none;
+}
+
+.filter-chip {
+    background-color: #3498db;
+}
+
+.clear-filters {
+    background-color: #e74c3c;
+    cursor: pointer;
+    margin: 0;
+}
+
+.filter-chip button {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.25);
+    color: #fff;
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /* Buttons */
 
 .add-btn,

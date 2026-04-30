@@ -209,6 +209,71 @@ function updateSortIcons(tableId, sortState) {
   });
 }
 
+const filterChipsContainer = document.getElementById("filter-chips");
+const clearFiltersBtn = document.getElementById("clear-filters-btn");
+
+function formatFilterName(key) {
+  const names = {
+    companyName: "Company Name",
+    projectName: "Project Name",
+    name: "Name",
+    surname: "Surname",
+    position: "Position",
+  };
+
+  return names[key] || key;
+}
+
+function renderFilterChips() {
+  filterChipsContainer.innerHTML = "";
+
+  const activeTab = getActiveTab();
+  const filters = activeTab === "employees" ? employeeFilters : projectFilters;
+
+  const keys = Object.keys(filters);
+
+  keys.forEach((key) => {
+    const chip = document.createElement("div");
+    chip.className = "filter-chip";
+
+    chip.innerHTML = `
+      <span>${formatFilterName(key)}: ${filters[key]}</span>
+      <button type="button" data-key="${key}">×</button>
+    `;
+
+    filterChipsContainer.appendChild(chip);
+  });
+
+  clearFiltersBtn.classList.toggle("hidden", keys.length < 2);
+}
+
+filterChipsContainer.addEventListener("click", (e) => {
+  if (!e.target.dataset.key) return;
+
+  const key = e.target.dataset.key;
+  const activeTab = getActiveTab();
+
+  if (activeTab === "employees") {
+    delete employeeFilters[key];
+  } else {
+    delete projectFilters[key];
+  }
+
+  renderCurrentMonthData();
+});
+
+clearFiltersBtn.addEventListener("click", () => {
+  const activeTab = getActiveTab();
+
+  if (activeTab === "employees") {
+    employeeFilters = {};
+  } else {
+    projectFilters = {};
+  }
+
+  renderCurrentMonthData();
+});
+
 // Helpers
 function formatCurrency(amount) {
   return `$${amount.toFixed(2)}`;
@@ -286,11 +351,23 @@ function filterData(data, filters) {
     return Object.keys(filters).every((key) => {
       if (!filters[key]) return true;
 
-      return String(item[key])
+      const value = item[key];
+
+      if (value === undefined || value === null) return false;
+
+      return String(value)
         .toLowerCase()
         .includes(filters[key].toLowerCase());
     });
   });
+}
+
+function getActiveTab() {
+  if (!employeesContent.classList.contains("hidden")) {
+    return "employees";
+  }
+
+  return "projects";
 }
 
 // Calculations
@@ -353,7 +430,6 @@ function calculateTotalEstimatedIncome(projects, employees) {
     benchPayments,
   };
 }
-
 
 // Tables
 const projectsTableBody = document.getElementById("projects-table-body");
@@ -461,6 +537,7 @@ function renderCurrentMonthData() {
   renderTotalEstimatedIncome(data.projects, data.employees);
 
   totalIncomeBlock.classList.toggle("hidden", data.projects.length === 0);
+  renderFilterChips();
 }
 
 monthSelect.addEventListener("change", () => {
@@ -514,23 +591,38 @@ function openFilterPopup(icon, tableType, key) {
   const popup = document.createElement("div");
   popup.className = "filter-popup";
 
-  const currentValue =
-    tableType === "projects"
-      ? projectFilters[key] || ""
-      : employeeFilters[key] || "";
+  const filters = tableType === "projects" ? projectFilters : employeeFilters;
+  const currentValue = filters[key] || "";
 
-  popup.innerHTML = `
-    <input type="text" class="filter-input" placeholder="Filter by ${key}..." value="${currentValue}">
-    <div class="filter-popup-actions">
-      <button type="button" class="filter-apply-btn">Apply</button>
-      <button type="button" class="filter-cancel-btn">Cancel</button>
-    </div>
-  `;
+  if (key === "position") {
+    popup.innerHTML = `
+      <select class="filter-input">
+        <option value="">Select position</option>
+        <option value="Junior">Junior</option>
+        <option value="Middle">Middle</option>
+        <option value="Senior">Senior</option>
+        <option value="Lead">Lead</option>
+        <option value="Architect">Architect</option>
+        <option value="BO">BO</option>
+      </select>
+      <div class="filter-popup-actions">
+        <button type="button" class="filter-apply-btn">Apply</button>
+        <button type="button" class="filter-cancel-btn">Cancel</button>
+      </div>
+    `;
+  } else {
+    popup.innerHTML = `
+      <input type="text" class="filter-input" placeholder="Filter by ${formatFilterName(key)}..." value="${currentValue}">
+      <div class="filter-popup-actions">
+        <button type="button" class="filter-apply-btn">Apply</button>
+        <button type="button" class="filter-cancel-btn">Cancel</button>
+      </div>
+    `;
+  }
 
   document.body.appendChild(popup);
 
   const rect = icon.getBoundingClientRect();
-
   popup.style.top = `${rect.bottom + window.scrollY + 10}px`;
   popup.style.left = `${rect.left + window.scrollX - 20}px`;
 
@@ -540,11 +632,11 @@ function openFilterPopup(icon, tableType, key) {
   const applyBtn = popup.querySelector(".filter-apply-btn");
   const cancelBtn = popup.querySelector(".filter-cancel-btn");
 
+  input.value = currentValue;
   input.focus();
 
   applyBtn.addEventListener("click", () => {
     const value = input.value.trim();
-    const filters = tableType === "projects" ? projectFilters : employeeFilters;
 
     if (value === "") {
       delete filters[key];
@@ -557,8 +649,6 @@ function openFilterPopup(icon, tableType, key) {
   });
 
   cancelBtn.addEventListener("click", () => {
-    const filters = tableType === "projects" ? projectFilters : employeeFilters;
-
     delete filters[key];
 
     closeFilterPopup();
@@ -566,13 +656,8 @@ function openFilterPopup(icon, tableType, key) {
   });
 
   input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      applyBtn.click();
-    }
-
-    if (e.key === "Escape") {
-      closeFilterPopup();
-    }
+    if (e.key === "Enter") applyBtn.click();
+    if (e.key === "Escape") closeFilterPopup();
   });
 }
 
@@ -793,6 +878,16 @@ const navProjects = document.getElementById("nav-projects");
 const navEmployees = document.getElementById("nav-employees");
 const projectsContent = document.getElementById("projects-content");
 const employeesContent = document.getElementById("employees-content");
+const filtersRow = document.getElementById("filters-row");
+
+function moveFiltersRowToActiveTab() {
+  const activeContent =
+    getActiveTab() === "employees" ? employeesContent : projectsContent;
+
+  const header = activeContent.querySelector(".content-header");
+
+  header.insertAdjacentElement("afterend", filtersRow);
+}
 
 function restoreActiveTab() {
   const activeTab = localStorage.getItem(ACTIVE_TAB_KEY);
@@ -804,7 +899,6 @@ function restoreActiveTab() {
     navEmployees.classList.add("active");
     navProjects.classList.remove("active");
   } else {
-    // default
     projectsContent.classList.remove("hidden");
     employeesContent.classList.add("hidden");
 
@@ -836,6 +930,8 @@ navProjects.addEventListener("click", (e) => {
   navEmployees.classList.remove("active");
 
   localStorage.setItem(ACTIVE_TAB_KEY, "projects");
+  moveFiltersRowToActiveTab();
+  renderFilterChips();
 });
 
 navEmployees.addEventListener("click", (e) => {
@@ -848,6 +944,36 @@ navEmployees.addEventListener("click", (e) => {
   navProjects.classList.remove("active");
 
   localStorage.setItem(ACTIVE_TAB_KEY, "employees");
+  moveFiltersRowToActiveTab();
+  renderFilterChips();
+});
+
+navEmployees.addEventListener("click", (e) => {
+  e.preventDefault();
+
+  employeesContent.classList.remove("hidden");
+  projectsContent.classList.add("hidden");
+
+  navEmployees.classList.add("active");
+  navProjects.classList.remove("active");
+
+  localStorage.setItem(ACTIVE_TAB_KEY, "employees");
+
+  renderFilterChips();
+});
+
+navProjects.addEventListener("click", (e) => {
+  e.preventDefault();
+
+  projectsContent.classList.remove("hidden");
+  employeesContent.classList.add("hidden");
+
+  navProjects.classList.add("active");
+  navEmployees.classList.remove("active");
+
+  localStorage.setItem(ACTIVE_TAB_KEY, "projects");
+
+  renderFilterChips();
 });
 
 // Panels
@@ -1134,6 +1260,7 @@ seedModal.addEventListener("click", (e) => {
 loadFromLocalStorage();
 restoreSelectedPeriod();
 restoreActiveTab();
+moveFiltersRowToActiveTab();
 renderCurrentMonthData();
 updateSortIcons("projects-table", projectSort);
 updateSortIcons("employees-table", employeeSort);
