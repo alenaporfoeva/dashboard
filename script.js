@@ -1015,12 +1015,17 @@ function editEmployeeSalary(cell) {
 
 // Assign
 let currentAssignmentPopup = null;
+let currentAssignmentButton = null;
 
 function closeAssignmentPopup() {
   if (currentAssignmentPopup) {
     currentAssignmentPopup.remove();
     currentAssignmentPopup = null;
+    currentAssignmentButton = null;
   }
+
+  window.removeEventListener("scroll", repositionCurrentAssignmentPopup);
+  window.removeEventListener("resize", repositionCurrentAssignmentPopup);
 }
 
 function positionAssignmentPopup(popup, button) {
@@ -1052,6 +1057,12 @@ function positionAssignmentPopup(popup, button) {
   popup.style.top = `${top}px`;
 }
 
+function repositionCurrentAssignmentPopup() {
+  if (!currentAssignmentPopup || !currentAssignmentButton) return;
+
+  positionAssignmentPopup(currentAssignmentPopup, currentAssignmentButton);
+}
+
 function openAssignmentPopup(button, employeeId) {
   closeAssignmentPopup();
 
@@ -1066,17 +1077,45 @@ function openAssignmentPopup(button, employeeId) {
   const popup = document.createElement("div");
   popup.className = "assignment-popup";
 
-  const projectOptions = currentData.projects
+  const assignedProjectIds = (employee.assignments || []).map((assignment) => {
+    return assignment.projectId;
+  });
+
+  const availableProjects = currentData.projects.filter((project) => {
+    return !assignedProjectIds.includes(project.id);
+  });
+
+  const projectOptions = availableProjects
     .map((project) => {
       const used = getProjectUsedEffectiveCapacity(project, currentData.employees);
 
       return `
-        <option value="${project.id}">
-          ${project.projectName} (${used.toFixed(1)}/${project.employeeCapacity})
-        </option>
-      `;
+      <option value="${project.id}">
+        ${project.projectName} (${used.toFixed(1)}/${project.employeeCapacity})
+      </option>
+    `;
     })
     .join("");
+
+  if (availableProjects.length === 0) {
+    popup.innerHTML = `
+    <h3>Assign ${employee.name} ${employee.surname}</h3>
+    <p class="assignment-error">No available projects to assign.</p>
+    <div class="assignment-popup-actions">
+      <button type="button" class="assignment-cancel-btn">Close</button>
+    </div>
+  `;
+
+    document.body.appendChild(popup);
+    currentAssignmentPopup = popup;
+    currentAssignmentButton = button;
+    positionAssignmentPopup(popup, button);
+    window.addEventListener("scroll", repositionCurrentAssignmentPopup);
+    window.addEventListener("resize", repositionCurrentAssignmentPopup);
+
+    popup.querySelector(".assignment-cancel-btn").addEventListener("click", closeAssignmentPopup);
+    return;
+  }
 
   popup.innerHTML = `
     <h3>Assign ${employee.name} ${employee.surname}</h3>
@@ -1102,7 +1141,8 @@ function openAssignmentPopup(button, employeeId) {
     <input id="assignment-fit" type="range" min="0" max="1" step="0.1" value="1">
 
     <div class="assignment-popup-info">
-      Effective capacity: <strong id="assignment-effective">0.100</strong>
+      Effective capacity: <strong id="assignment-effective">0.100</strong><br>
+      Project capacity after assignment: <strong id="assignment-project-capacity"></strong>
     </div>
 
     <p id="assignment-error" class="assignment-error"></p>
@@ -1115,33 +1155,64 @@ function openAssignmentPopup(button, employeeId) {
 
   document.body.appendChild(popup);
   currentAssignmentPopup = popup;
+  currentAssignmentButton = button;
 
   positionAssignmentPopup(popup, button);
+
+  window.addEventListener("scroll", repositionCurrentAssignmentPopup);
+  window.addEventListener("resize", repositionCurrentAssignmentPopup);
 
   const capacityInput = popup.querySelector("#assignment-capacity");
   const fitInput = popup.querySelector("#assignment-fit");
   const capacityValue = popup.querySelector("#assignment-capacity-value");
   const fitValue = popup.querySelector("#assignment-fit-value");
   const effectiveValue = popup.querySelector("#assignment-effective");
+  const projectCapacityValue = popup.querySelector("#assignment-project-capacity");
+  const errorText = popup.querySelector("#assignment-error");
 
-  function updatePreview() {
+  function updateAssignPreview() {
+    const projectId = popup.querySelector("#assignment-project").value;
+    const project = currentData.projects.find((project) => project.id === projectId);
+
     const capacity = Number(capacityInput.value);
     const fit = Number(fitInput.value);
+    const vacationCoefficient = getVacationCoefficient(employee);
+    const effectiveCapacity = capacity * fit * vacationCoefficient;
+
+    const currentProjectUsed = getProjectUsedEffectiveCapacity(project, currentData.employees);
+    const projectedUsed = currentProjectUsed + effectiveCapacity;
 
     capacityValue.textContent = capacity.toFixed(1);
     fitValue.textContent = fit.toFixed(1);
-    effectiveValue.textContent = (capacity * fit).toFixed(3);
+    effectiveValue.textContent = effectiveCapacity.toFixed(3);
+    projectCapacityValue.textContent = `${projectedUsed.toFixed(1)}/${project.employeeCapacity}`;
+
+    if (projectedUsed > project.employeeCapacity) {
+      errorText.textContent = "Warning: project capacity will be exceeded. Reduce capacity, reduce project fit, or choose another project.";
+    } else {
+      errorText.textContent = "";
+    }
   }
 
-  capacityInput.addEventListener("input", updatePreview);
-  fitInput.addEventListener("input", updatePreview);
+  capacityInput.addEventListener("input", updateAssignPreview);
+  fitInput.addEventListener("input", updateAssignPreview);
+  popup.querySelector("#assignment-project").addEventListener("change", updateAssignPreview);
+  updateAssignPreview();
 
   popup.querySelector(".assignment-cancel-btn").addEventListener("click", closeAssignmentPopup);
 
   popup.querySelector(".assignment-save-btn").addEventListener("click", () => {
     const projectId = popup.querySelector("#assignment-project").value;
+    const project = currentData.projects.find(p => p.id === projectId);
+
     const capacity = Number(capacityInput.value);
     const fit = Number(fitInput.value);
+
+    const vacationCoefficient = getVacationCoefficient(employee);
+    const effectiveCapacity = capacity * fit * vacationCoefficient;
+
+    const currentProjectUsed = getProjectUsedEffectiveCapacity(project, currentData.employees);
+    const projectedUsed = currentProjectUsed + effectiveCapacity;
 
     employee.assignments.push({
       projectId,
@@ -1574,27 +1645,50 @@ function openEditAssignmentPopup(button, employeeId, projectId) {
 
   document.body.appendChild(popup);
   currentAssignmentPopup = popup;
+  currentAssignmentButton = button;
 
   positionAssignmentPopup(popup, button);
+  window.addEventListener("scroll", repositionCurrentAssignmentPopup);
+  window.addEventListener("resize", repositionCurrentAssignmentPopup);
 
   const capacityInput = popup.querySelector("#edit-assignment-capacity");
   const fitInput = popup.querySelector("#edit-assignment-fit");
   const capacityValue = popup.querySelector("#edit-assignment-capacity-value");
   const fitValue = popup.querySelector("#edit-assignment-fit-value");
   const effectiveValue = popup.querySelector("#edit-assignment-effective");
+  const errorText = popup.querySelector("#edit-assignment-error");
 
-  function updatePreview() {
+  function updateEditPreview() {
     const capacity = Number(capacityInput.value);
     const fit = Number(fitInput.value);
     const vacationCoefficient = getVacationCoefficient(employee);
 
+    const effectiveCapacity = capacity * fit * vacationCoefficient;
+
+    const currentProjectUsed = getProjectUsedEffectiveCapacity(project, currentData.employees);
+
+    const currentAssignmentEffective =
+      assignment.capacity *
+      assignment.fit *
+      getVacationCoefficient(employee);
+
+    const projectedUsed =
+      currentProjectUsed - currentAssignmentEffective + effectiveCapacity;
+
     capacityValue.textContent = capacity.toFixed(1);
     fitValue.textContent = fit.toFixed(1);
-    effectiveValue.textContent = (capacity * fit * vacationCoefficient).toFixed(3);
+    effectiveValue.textContent = effectiveCapacity.toFixed(3);
+
+    if (projectedUsed > project.employeeCapacity) {
+      errorText.textContent = "Warning: project capacity will be exceeded.";
+    } else {
+      errorText.textContent = "";
+    }
   }
 
-  capacityInput.addEventListener("input", updatePreview);
-  fitInput.addEventListener("input", updatePreview);
+  capacityInput.addEventListener("input", updateEditPreview);
+  fitInput.addEventListener("input", updateEditPreview);
+  updateEditPreview();
 
   popup.querySelector(".assignment-cancel-btn").addEventListener("click", closeAssignmentPopup);
 
@@ -1907,34 +2001,6 @@ navEmployees.addEventListener("click", (e) => {
 
   localStorage.setItem(ACTIVE_TAB_KEY, "employees");
   moveFiltersRowToActiveTab();
-  renderFilterChips();
-});
-
-navEmployees.addEventListener("click", (e) => {
-  e.preventDefault();
-
-  employeesContent.classList.remove("hidden");
-  projectsContent.classList.add("hidden");
-
-  navEmployees.classList.add("active");
-  navProjects.classList.remove("active");
-
-  localStorage.setItem(ACTIVE_TAB_KEY, "employees");
-
-  renderFilterChips();
-});
-
-navProjects.addEventListener("click", (e) => {
-  e.preventDefault();
-
-  projectsContent.classList.remove("hidden");
-  employeesContent.classList.add("hidden");
-
-  navProjects.classList.add("active");
-  navEmployees.classList.remove("active");
-
-  localStorage.setItem(ACTIVE_TAB_KEY, "projects");
-
   renderFilterChips();
 });
 
