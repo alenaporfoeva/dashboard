@@ -516,12 +516,201 @@ tbody tr {
     margin: 0;
 }
 
+/* Assign */
+
+.assignment-popup {
+    position: absolute;
+    z-index: 1900;
+    width: 340px;
+    background: #fff;
+    border-radius: 10px;
+    padding: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.assignment-popup h3 {
+    margin-bottom: 14px;
+    color: #2c3e50;
+}
+
+.assignment-popup label {
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 6px;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.assignment-popup select,
+.assignment-popup input[type="range"] {
+    width: 100%;
+}
+
+.assignment-popup-info {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #2c3e50;
+}
+
+.assignment-popup-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.assignment-error {
+    margin-top: 8px;
+    color: #e74c3c;
+    font-size: 14px;
+}
+
+/* Show Assignments popup */
+
+.details-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1700;
+}
+
+.details-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: min(1000px, 90vw);
+    max-height: 80vh;
+    overflow-y: auto;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border-radius: 10px;
+    z-index: 1800;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.details-popup-header {
+    background: #34495e;
+    color: #fff;
+    padding: 18px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.details-popup-header button {
+    background: transparent;
+    color: #fff;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.details-popup-body {
+    padding: 22px;
+}
+
+.details-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.details-table th {
+    background: #34495e;
+    color: #fff;
+}
+
+.details-table td:last-child {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.empty-state {
+    padding: 20px;
+    color: #7f8c8d;
+    text-align: center;
+}
+
+.details-link {
+    background: none;
+    border: none;
+    color: #3498db;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+}
+
+/* Availability */
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-top: 16px;
+}
+
+.calendar-day-name {
+    font-weight: 700;
+    text-align: center;
+    color: #2c3e50;
+}
+
+.calendar-day {
+    min-height: 42px;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.calendar-day.weekend {
+    background: #ecf0f1;
+    color: #7f8c8d;
+}
+
+.calendar-day.vacation {
+    background: #e74c3c;
+    color: #fff;
+    border-color: #e74c3c;
+}
+
+.calendar-day.today {
+    border: 3px solid #3498db;
+}
+
+.calendar-day.empty {
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.calendar-info {
+    margin-top: 16px;
+    color: #2c3e50;
+    font-size: 16px;
+}
+
+.calendar-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+}
+
 /* Buttons */
 
 .add-btn,
 .seed-btn,
 .filter-apply-btn,
 .filter-cancel-btn,
+.assignment-save-btn,
+.assignment-cancel-btn,
+.edit-assignment-btn,
 .show-btn,
 .assign-btn,
 .delete-btn,
@@ -535,7 +724,8 @@ tbody tr {
 }
 
 .add-btn,
-.seed-btn {
+.seed-btn,
+.assignment-save-btn {
     background-color: #28a745;
     padding: 10px 15px;
     font-size: 1em;
@@ -546,9 +736,16 @@ tbody tr {
     padding: 10px 18px;
 }
 
-.filter-cancel-btn {
+.filter-cancel-btn,
+.assignment-cancel-btn {
     background-color: #95a5a6;
     padding: 10px 18px;
+}
+
+.edit-assignment-btn {
+    background-color: #3498db;
+    padding: 8px 12px;
+    font-size: 14px;
 }
 
 .show-btn,

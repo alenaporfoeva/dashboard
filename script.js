@@ -1,4 +1,4 @@
-const STORAGE_KEY = "employee-project-dashboard-data";
+const STORAGE_KEY = "monthlyData";
 const ACTIVE_TAB_KEY = "active-tab";
 const SELECTED_MONTH_KEY = "selected-month";
 const SELECTED_YEAR_KEY = "selected-year";
@@ -10,60 +10,42 @@ const projects = [
     companyName: "DataViz Inc",
     projectName: "Analytics Dashboard",
     budget: 7900,
-    employeeCapacityUsed: 1.0,
-    employeeCapacityTotal: 1,
-    employeesCount: 1,
-    estimatedIncome: -1250,
+    employeeCapacity: 1,
   },
   {
     id: "project-2",
     companyName: "SalesPro",
     projectName: "CRM System",
     budget: 10000,
-    employeeCapacityUsed: 1.4,
-    employeeCapacityTotal: 2,
-    employeesCount: 2,
-    estimatedIncome: -775,
+    employeeCapacity: 2,
   },
   {
     id: "project-3",
     companyName: "TechCorp",
     projectName: "E-Commerce Platform",
     budget: 12500,
-    employeeCapacityUsed: 3.0,
-    employeeCapacityTotal: 3,
-    employeesCount: 3,
-    estimatedIncome: -3958.33,
+    employeeCapacity: 3,
   },
   {
     id: "project-4",
     companyName: "MediCare Solutions",
     projectName: "Healthcare Portal",
     budget: 15000,
-    employeeCapacityUsed: 2.9,
-    employeeCapacityTotal: 3,
-    employeesCount: 4,
-    estimatedIncome: -4325,
+    employeeCapacity: 3,
   },
   {
     id: "project-5",
     companyName: "TechCorp",
     projectName: "Mobile Banking App",
     budget: 16650,
-    employeeCapacityUsed: 1.9,
-    employeeCapacityTotal: 2,
-    employeesCount: 2,
-    estimatedIncome: 2767.5,
+    employeeCapacity: 2,
   },
   {
     id: "project-6",
     companyName: "GreenSoft",
     projectName: "Sustainability Tracker",
     budget: 9200,
-    employeeCapacityUsed: 1.2,
-    employeeCapacityTotal: 2,
-    employeesCount: 2,
-    estimatedIncome: 850,
+    employeeCapacity: 2,
   },
 ];
 
@@ -72,78 +54,83 @@ const employees = [
     id: "employee-1",
     name: "John",
     surname: "Smith",
-    age: 29,
+    dateOfBirth: "1997-04-12",
     position: "Junior",
     salary: 3750,
-    estimatedPayment: 3750,
-    assignmentsCount: 1,
-    capacityUsed: 1.0,
-    capacityTotal: 1.5,
-    projectedIncome: 208.33,
+    vacationDays: [],
+    assignments: [
+      {
+        projectId: "project-1",
+        capacity: 1.0,
+        fit: 1.0,
+      },
+    ],
   },
   {
     id: "employee-2",
     name: "Sarah",
     surname: "Johnson",
-    age: 32,
+    dateOfBirth: "1994-09-20",
     position: "Middle",
     salary: 5400,
-    estimatedPayment: 5400,
-    assignmentsCount: 1,
-    capacityUsed: 1.0,
-    capacityTotal: 1.5,
-    projectedIncome: -1233.33,
+    vacationDays: [],
+    assignments: [
+      {
+        projectId: "project-2",
+        capacity: 1.0,
+        fit: 1.0,
+      },
+    ],
   },
   {
     id: "employee-3",
     name: "Michael",
     surname: "Williams",
-    age: 35,
+    dateOfBirth: "1991-02-03",
     position: "Senior",
     salary: 7100,
-    estimatedPayment: 7100,
-    assignmentsCount: 1,
-    capacityUsed: 1.0,
-    capacityTotal: 1.5,
-    projectedIncome: -2933.33,
+    vacationDays: [],
+    assignments: [
+      {
+        projectId: "project-3",
+        capacity: 1.0,
+        fit: 1.0,
+      },
+    ],
   },
   {
     id: "employee-4",
     name: "Emily",
     surname: "Brown",
-    age: 29,
+    dateOfBirth: "1997-07-18",
     position: "Middle",
     salary: 5150,
-    estimatedPayment: 5150,
-    assignmentsCount: 1,
-    capacityUsed: 1.0,
-    capacityTotal: 1.5,
-    projectedIncome: 2342.5,
+    vacationDays: [],
+    assignments: [
+      {
+        projectId: "project-5",
+        capacity: 1.0,
+        fit: 1.0,
+      },
+    ],
   },
   {
     id: "employee-5",
     name: "Daniel",
     surname: "Miller",
-    age: 38,
+    dateOfBirth: "1988-11-05",
     position: "Lead",
     salary: 8200,
-    estimatedPayment: 4100,
-    assignmentsCount: 0,
-    capacityUsed: 0,
-    capacityTotal: 1.5,
-    projectedIncome: -4100,
+    vacationDays: [],
+    assignments: [],
   },
 ];
 
 // Monthly data
 const monthlyData = {
-  "2025-0": {
-    projects,
-    employees,
-  },
-  "2025-1": {
-    projects: [],
-    employees: [],
+  "2026-0": {
+    projects: JSON.parse(JSON.stringify(projects)),
+    employees: JSON.parse(JSON.stringify(employees)),
   },
 };
 
@@ -330,9 +317,39 @@ function sortData(data, sortState) {
     let aVal = a[sortState.key];
     let bVal = b[sortState.key];
 
+    const currentData = getCurrentMonthData();
+
     if (sortState.key === "employeeCapacity") {
-      aVal = a.employeeCapacityUsed / a.employeeCapacityTotal;
-      bVal = b.employeeCapacityUsed / b.employeeCapacityTotal;
+      aVal = getProjectUsedEffectiveCapacity(a, currentData.employees) / a.employeeCapacity;
+      bVal = getProjectUsedEffectiveCapacity(b, currentData.employees) / b.employeeCapacity;
+    }
+
+    if (sortState.key === "estimatedIncome") {
+      aVal = calculateProjectProfit(a, currentData.employees);
+      bVal = calculateProjectProfit(b, currentData.employees);
+    }
+
+    if (sortState.key === "age") {
+      aVal = calculateAge(a.dateOfBirth);
+      bVal = calculateAge(b.dateOfBirth);
+    }
+
+    if (sortState.key === "estimatedPayment") {
+      aVal = calculateEmployeePayment(a);
+      bVal = calculateEmployeePayment(b);
+    }
+
+    if (sortState.key === "projectedIncome") {
+      aVal = calculateEmployeeProjectedIncome(
+        a,
+        currentData.projects,
+        currentData.employees
+      );
+      bVal = calculateEmployeeProjectedIncome(
+        b,
+        currentData.projects,
+        currentData.employees
+      );
     }
 
     if (typeof aVal === "string") {
@@ -371,55 +388,179 @@ function getActiveTab() {
 }
 
 // Calculations
+const MAX_EMPLOYEE_CAPACITY = 1.5;
+
+function getCurrentYear() {
+  return Number(yearSelect.value);
+}
+
+function getCurrentMonth() {
+  return Number(monthSelect.value);
+}
+
 function getWorkingDaysInMonth(year, month) {
   const date = new Date(year, month, 1);
   let count = 0;
 
   while (date.getMonth() === month) {
     const day = date.getDay();
-    if (day !== 0 && day !== 6) count++;
+
+    if (day !== 0 && day !== 6) {
+      count++;
+    }
+
     date.setDate(date.getDate() + 1);
   }
 
   return count;
 }
 
-function getVacationCoefficient(vacationDays = [], year, month) {
+function getVacationCoefficient(employee) {
+  const year = getCurrentYear();
+  const month = getCurrentMonth();
   const workingDays = getWorkingDaysInMonth(year, month);
 
-  const vacationWorkingDays = vacationDays.filter(dateStr => {
-    const date = new Date(dateStr);
+  const vacationDays = employee.vacationDays || [];
+
+  const vacationWorkingDays = vacationDays.filter((dayNumber) => {
+    const date = new Date(year, month, dayNumber);
     const day = date.getDay();
+
     return day !== 0 && day !== 6;
   }).length;
+
+  if (workingDays === 0) return 1;
 
   return (workingDays - vacationWorkingDays) / workingDays;
 }
 
-function getEffectiveCapacity(assignedCapacity, fit, vacationCoefficient) {
-  return assignedCapacity * fit * vacationCoefficient;
+function getEffectiveCapacity(employee, assignment) {
+  const vacationCoefficient = getVacationCoefficient(employee);
+
+  return assignment.capacity * assignment.fit * vacationCoefficient;
 }
 
-function getEmployeeCost(salary, assignedCapacity) {
-  return salary * Math.max(0.5, assignedCapacity);
+function getEmployeeCost(employee, assignment) {
+  return employee.salary * Math.max(0.5, assignment.capacity);
 }
 
-function getBenchCost(salary) {
-  return salary * 0.5;
+function getBenchCost(employee) {
+  return employee.salary * 0.5;
 }
 
-function calculateProjectProfit(project) {
-  return project.estimatedIncome || 0;
+function getEmployeeCapacityUsed(employee) {
+  return (employee.assignments || []).reduce((sum, assignment) => {
+    return sum + assignment.capacity;
+  }, 0);
+}
+
+function getProjectAssignments(projectId, employees) {
+  const assignments = [];
+
+  employees.forEach((employee) => {
+    (employee.assignments || []).forEach((assignment) => {
+      if (assignment.projectId === projectId) {
+        assignments.push({
+          employee,
+          assignment,
+        });
+      }
+    });
+  });
+
+  return assignments;
+}
+
+function getProjectUsedEffectiveCapacity(project, employees) {
+  const projectAssignments = getProjectAssignments(project.id, employees);
+
+  return projectAssignments.reduce((sum, item) => {
+    return sum + getEffectiveCapacity(item.employee, item.assignment);
+  }, 0);
+}
+
+function getProjectRevenuePerEffectiveCapacity(project, employees) {
+  const usedEffectiveCapacity = getProjectUsedEffectiveCapacity(project, employees);
+  const capacityForRevenue = Math.max(project.employeeCapacity, usedEffectiveCapacity);
+
+  if (capacityForRevenue === 0) return 0;
+
+  return project.budget / capacityForRevenue;
+}
+
+function getAssignmentRevenue(project, employee, assignment, employees) {
+  const revenuePerEffectiveCapacity = getProjectRevenuePerEffectiveCapacity(
+    project,
+    employees
+  );
+
+  return revenuePerEffectiveCapacity * getEffectiveCapacity(employee, assignment);
+}
+
+function getAssignmentProfit(project, employee, assignment, employees) {
+  const revenue = getAssignmentRevenue(project, employee, assignment, employees);
+  const cost = getEmployeeCost(employee, assignment);
+
+  return revenue - cost;
+}
+
+function calculateProjectProfit(project, employees) {
+  const projectAssignments = getProjectAssignments(project.id, employees);
+
+  const totalRevenue = projectAssignments.reduce((sum, item) => {
+    return sum + getAssignmentRevenue(
+      project,
+      item.employee,
+      item.assignment,
+      employees
+    );
+  }, 0);
+
+  const totalCost = projectAssignments.reduce((sum, item) => {
+    return sum + getEmployeeCost(item.employee, item.assignment);
+  }, 0);
+
+  return totalRevenue - totalCost;
+}
+
+function calculateEmployeePayment(employee) {
+  const assignments = employee.assignments || [];
+
+  if (assignments.length === 0) {
+    return getBenchCost(employee);
+  }
+
+  return assignments.reduce((sum, assignment) => {
+    return sum + getEmployeeCost(employee, assignment);
+  }, 0);
+}
+
+function calculateEmployeeProjectedIncome(employee, projects, employees) {
+  const assignments = employee.assignments || [];
+
+  if (assignments.length === 0) {
+    return -getBenchCost(employee);
+  }
+
+  return assignments.reduce((sum, assignment) => {
+    const project = projects.find((project) => project.id === assignment.projectId);
+
+    if (!project) return sum;
+
+    return sum + getAssignmentProfit(project, employee, assignment, employees);
+  }, 0);
 }
 
 function calculateTotalEstimatedIncome(projects, employees) {
   const projectsIncome = projects.reduce((sum, project) => {
-    return sum + calculateProjectProfit(project);
+    return sum + calculateProjectProfit(project, employees);
   }, 0);
 
   const benchPayments = employees.reduce((sum, employee) => {
-    if (employee.assignmentsCount === 0) {
-      return sum + getBenchCost(employee.salary);
+    const assignments = employee.assignments || [];
+
+    if (assignments.length === 0) {
+      return sum + getBenchCost(employee);
     }
 
     return sum;
@@ -443,14 +584,23 @@ function renderProjectsTable(projectsToRender) {
 
   data.forEach((project) => {
     const row = document.createElement("tr");
-    const profit = calculateProjectProfit(project);
+    const currentData = getCurrentMonthData();
+    const profit = calculateProjectProfit(project, currentData.employees);
+    const usedCapacity = getProjectUsedEffectiveCapacity(project, currentData.employees);
+    const employeesCount = getProjectAssignments(project.id, currentData.employees).length;
+    const isOverCapacity = usedCapacity > project.employeeCapacity;
 
     row.innerHTML = `
       <td>${project.companyName}</td>
       <td>${project.projectName}</td>
       <td>${formatCurrency(project.budget)}</td>
-      <td>${project.employeeCapacityUsed.toFixed(1)}/${project.employeeCapacityTotal}</td>
-      <td><button class="show-btn">Show Employees (${project.employeesCount})</button></td>
+      <td class="${isOverCapacity ? "negative-income" : ""}">
+        ${usedCapacity.toFixed(1)}/${project.employeeCapacity}</td>
+      <td>
+      <button class="show-btn show-project-employees-btn" data-id="${project.id}">
+        Show Employees (${employeesCount})
+      </button>
+</td>
       <td class="${getIncomeClass(profit)}">
         ${formatCurrency(profit)}
       </td>
@@ -471,30 +621,41 @@ function renderEmployeesTable(employeesToRender) {
 
   data.forEach((employee) => {
     const row = document.createElement("tr");
+    const currentData = getCurrentMonthData();
+    const age = calculateAge(employee.dateOfBirth);
+    const capacityUsed = getEmployeeCapacityUsed(employee);
+    const assignmentsCount = (employee.assignments || []).length;
+    const estimatedPayment = calculateEmployeePayment(employee);
+    const projectedIncome = calculateEmployeeProjectedIncome(
+      employee,
+      currentData.projects,
+      currentData.employees
+    );
+    const isAtMaxCapacity = capacityUsed >= MAX_EMPLOYEE_CAPACITY;
 
     row.innerHTML = `
       <td>${employee.name}</td>
       <td>${employee.surname}</td>
-      <td>${employee.age}</td>
+      <td>${age}</td>
       <td class="editable-position" data-id="${employee.id}">
         ${employee.position} <span class="edit-icon">✎</span>
       </td>
       <td class="editable-salary" data-id="${employee.id}">
         ${formatCurrency(employee.salary)} <span class="edit-icon">✎</span>
       </td>
-      <td>${formatCurrency(employee.estimatedPayment)}</td>
-      <td>
-        <button class="show-btn">
-          Show Assignments (${employee.assignmentsCount})
-          <small>${employee.capacityUsed.toFixed(1)}/${employee.capacityTotal}</small>
+      <td>${formatCurrency(estimatedPayment)}</td>
+        <td>
+        <button class="show-btn show-assignments-btn" data-id="${employee.id}">
+          Show Assignments (${assignmentsCount})
+          <small>${capacityUsed.toFixed(1)}/${MAX_EMPLOYEE_CAPACITY}</small>
         </button>
       </td>
-      <td class="${getIncomeClass(employee.projectedIncome)}">
-        ${formatCurrency(employee.projectedIncome)}
+      <td class="${getIncomeClass(projectedIncome)}">
+      ${formatCurrency(projectedIncome)}
       </td>
       <td>
-        <button class="availability-btn">Availability</button>
-        <button class="assign-btn">Assign</button>
+        <button class="availability-btn" data-id="${employee.id}">Availability</button>
+        <button class="assign-btn" data-id="${employee.id}" ${isAtMaxCapacity ? "disabled" : ""}>Assign</button>
         <button class="delete-btn" data-id="${employee.id}" data-type="employee">Delete</button>
       </td>
     `;
@@ -522,15 +683,7 @@ const totalIncomeAmount = document.getElementById("total-income-amount");
 const benchPaymentsText = document.getElementById("bench-payments");
 
 function renderCurrentMonthData() {
-  const key = getCurrentPeriodKey();
-  const data = monthlyData[key];
-
-  if (!data) {
-    projectsTableBody.innerHTML = "";
-    employeesTableBody.innerHTML = "";
-    totalIncomeBlock.classList.add("hidden");
-    return;
-  }
+  const data = getCurrentMonthData();
 
   renderProjectsTable(data.projects);
   renderEmployeesTable(data.employees);
@@ -710,6 +863,12 @@ projectsTableBody.addEventListener("click", (e) => {
     (project) => project.id !== projectId
   );
 
+  currentData.employees.forEach((employee) => {
+    employee.assignments = (employee.assignments || []).filter((assignment) => {
+      return assignment.projectId !== projectId;
+    });
+  });
+
   saveToLocalStorage();
   renderCurrentMonthData();
 });
@@ -834,7 +993,6 @@ function editEmployeeSalary(cell) {
     }
 
     employee.salary = newSalary;
-    employee.estimatedPayment = newSalary;
 
     saveToLocalStorage();
     renderCurrentMonthData();
@@ -854,6 +1012,810 @@ function editEmployeeSalary(cell) {
     saveSalary();
   });
 }
+
+// Assign
+let currentAssignmentPopup = null;
+
+function closeAssignmentPopup() {
+  if (currentAssignmentPopup) {
+    currentAssignmentPopup.remove();
+    currentAssignmentPopup = null;
+  }
+}
+
+function positionAssignmentPopup(popup, button) {
+  const rect = button.getBoundingClientRect();
+
+  let top = rect.bottom + window.scrollY + 8;
+  let left = rect.left + window.scrollX;
+
+  const popupWidth = 340;
+  const popupHeight = popup.offsetHeight || 360;
+
+  if (left + popupWidth > window.scrollX + window.innerWidth) {
+    left = window.scrollX + window.innerWidth - popupWidth - 16;
+  }
+
+  if (top + popupHeight > window.scrollY + window.innerHeight) {
+    top = rect.top + window.scrollY - popupHeight - 8;
+  }
+
+  if (left < window.scrollX + 16) {
+    left = window.scrollX + 16;
+  }
+
+  if (top < window.scrollY + 16) {
+    top = window.scrollY + 16;
+  }
+
+  popup.style.left = `${left}px`;
+  popup.style.top = `${top}px`;
+}
+
+function openAssignmentPopup(button, employeeId) {
+  closeAssignmentPopup();
+
+  const currentData = getCurrentMonthData();
+  const employee = currentData.employees.find((employee) => employee.id === employeeId);
+
+  if (!employee) return;
+
+  const capacityUsed = getEmployeeCapacityUsed(employee);
+  const availableCapacity = MAX_EMPLOYEE_CAPACITY - capacityUsed;
+
+  const popup = document.createElement("div");
+  popup.className = "assignment-popup";
+
+  const projectOptions = currentData.projects
+    .map((project) => {
+      const used = getProjectUsedEffectiveCapacity(project, currentData.employees);
+
+      return `
+        <option value="${project.id}">
+          ${project.projectName} (${used.toFixed(1)}/${project.employeeCapacity})
+        </option>
+      `;
+    })
+    .join("");
+
+  popup.innerHTML = `
+    <h3>Assign ${employee.name} ${employee.surname}</h3>
+
+    <div class="assignment-popup-info">
+      Current capacity: <strong>${capacityUsed.toFixed(1)}/${MAX_EMPLOYEE_CAPACITY}</strong><br>
+      Available capacity: <strong>${availableCapacity.toFixed(1)}</strong>
+    </div>
+
+    <label for="assignment-project">Project</label>
+    <select id="assignment-project">
+      ${projectOptions}
+    </select>
+
+    <label for="assignment-capacity">
+      Capacity: <span id="assignment-capacity-value">0.1</span>
+    </label>
+    <input id="assignment-capacity" type="range" min="0.1" max="${availableCapacity.toFixed(1)}" step="0.1" value="0.1">
+
+    <label for="assignment-fit">
+      Project fit: <span id="assignment-fit-value">1.0</span>
+    </label>
+    <input id="assignment-fit" type="range" min="0" max="1" step="0.1" value="1">
+
+    <div class="assignment-popup-info">
+      Effective capacity: <strong id="assignment-effective">0.100</strong>
+    </div>
+
+    <p id="assignment-error" class="assignment-error"></p>
+
+    <div class="assignment-popup-actions">
+      <button type="button" class="assignment-cancel-btn">Cancel</button>
+      <button type="button" class="assignment-save-btn">Save</button>
+    </div>
+  `;
+
+  document.body.appendChild(popup);
+  currentAssignmentPopup = popup;
+
+  positionAssignmentPopup(popup, button);
+
+  const capacityInput = popup.querySelector("#assignment-capacity");
+  const fitInput = popup.querySelector("#assignment-fit");
+  const capacityValue = popup.querySelector("#assignment-capacity-value");
+  const fitValue = popup.querySelector("#assignment-fit-value");
+  const effectiveValue = popup.querySelector("#assignment-effective");
+
+  function updatePreview() {
+    const capacity = Number(capacityInput.value);
+    const fit = Number(fitInput.value);
+
+    capacityValue.textContent = capacity.toFixed(1);
+    fitValue.textContent = fit.toFixed(1);
+    effectiveValue.textContent = (capacity * fit).toFixed(3);
+  }
+
+  capacityInput.addEventListener("input", updatePreview);
+  fitInput.addEventListener("input", updatePreview);
+
+  popup.querySelector(".assignment-cancel-btn").addEventListener("click", closeAssignmentPopup);
+
+  popup.querySelector(".assignment-save-btn").addEventListener("click", () => {
+    const projectId = popup.querySelector("#assignment-project").value;
+    const capacity = Number(capacityInput.value);
+    const fit = Number(fitInput.value);
+
+    employee.assignments.push({
+      projectId,
+      capacity,
+      fit,
+    });
+
+    saveToLocalStorage();
+    closeAssignmentPopup();
+    renderCurrentMonthData();
+  });
+
+  setTimeout(() => {
+    document.addEventListener("click", handleAssignmentOutsideClick);
+  }, 0);
+}
+
+function handleAssignmentOutsideClick(e) {
+  if (
+    currentAssignmentPopup &&
+    !currentAssignmentPopup.contains(e.target) &&
+    !e.target.classList.contains("assign-btn") &&
+    !e.target.classList.contains("edit-assignment-btn")
+  ) {
+    closeAssignmentPopup();
+    document.removeEventListener("click", handleAssignmentOutsideClick);
+  }
+}
+
+employeesTableBody.addEventListener("click", (e) => {
+  const assignButton = e.target.closest(".assign-btn");
+
+  if (!assignButton) return;
+  if (assignButton.disabled) return;
+
+  const employeeId = assignButton.dataset.id;
+
+  openAssignmentPopup(assignButton, employeeId);
+});
+
+// Navigation links from details popups
+function switchToProjectsWithFilter(projectName) {
+  projectFilters = { projectName };
+  employeeFilters = {};
+
+  projectsContent.classList.remove("hidden");
+  employeesContent.classList.add("hidden");
+
+  navProjects.classList.add("active");
+  navEmployees.classList.remove("active");
+
+  localStorage.setItem(ACTIVE_TAB_KEY, "projects");
+
+  moveFiltersRowToActiveTab();
+  renderCurrentMonthData();
+}
+
+function switchToEmployeesWithFilter(name, surname) {
+  employeeFilters = { name, surname };
+  projectFilters = {};
+
+  employeesContent.classList.remove("hidden");
+  projectsContent.classList.add("hidden");
+
+  navEmployees.classList.add("active");
+  navProjects.classList.remove("active");
+
+  localStorage.setItem(ACTIVE_TAB_KEY, "employees");
+
+  moveFiltersRowToActiveTab();
+  renderCurrentMonthData();
+}
+
+// Show Project Employees popup
+function openProjectEmployeesPopup(projectId) {
+  closeDetailsPopup();
+
+  const currentData = getCurrentMonthData();
+  const project = currentData.projects.find(p => p.id === projectId);
+
+  if (!project) return;
+
+  const overlay = document.createElement("div");
+  overlay.className = "details-overlay";
+
+  const popup = document.createElement("div");
+  popup.className = "details-popup";
+
+  const assignments = getProjectAssignments(projectId, currentData.employees);
+
+  const rows = assignments.map(({ employee, assignment }) => {
+    const vacationCoefficient = getVacationCoefficient(employee);
+    const effectiveCapacity = getEffectiveCapacity(employee, assignment);
+    const revenue = getAssignmentRevenue(project, employee, assignment, currentData.employees);
+    const cost = getEmployeeCost(employee, assignment);
+    const profit = revenue - cost;
+
+    return `
+      <tr>
+        <td>
+          <button
+            type="button"
+            class="details-link go-to-employee-btn"
+            data-name="${employee.name}"
+            data-surname="${employee.surname}"
+      >
+        ${employee.name} ${employee.surname}
+      </button>
+    </td>
+        <td>${assignment.capacity.toFixed(2)}</td>
+        <td>${assignment.fit.toFixed(2)}</td>
+        <td>${(employee.vacationDays || []).length}</td>
+        <td>${vacationCoefficient.toFixed(3)}</td>
+        <td>${effectiveCapacity.toFixed(3)}</td>
+        <td>${formatCurrency(revenue)}</td>
+        <td>${formatCurrency(cost)}</td>
+        <td class="${getIncomeClass(profit)}">${formatCurrency(profit)}</td>
+        <td>
+          <button
+            class="edit-assignment-btn"
+            data-employee-id="${employee.id}"
+            data-project-id="${project.id}">
+            Edit
+          </button>
+
+          <button
+            class="delete-btn unassign-btn"
+            data-employee-id="${employee.id}"
+            data-project-id="${project.id}">
+            Unassign
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  popup.innerHTML = `
+    <div class="details-popup-header">
+      <h2>Employees: ${project.projectName}</h2>
+      <button type="button" class="details-close-btn">×</button>
+    </div>
+
+    <div class="details-popup-body">
+      ${assignments.length === 0
+      ? `<div class="empty-state">No employees assigned to this project.</div>`
+      : `
+          <table class="details-table">
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Capacity</th>
+                <th>Fit</th>
+                <th>Vacation Days</th>
+                <th>Vacation Coef.</th>
+                <th>Effective Capacity</th>
+                <th>Revenue</th>
+                <th>Cost</th>
+                <th>Profit</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        `}
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(popup);
+
+  overlay.addEventListener("click", closeDetailsPopup);
+  popup.querySelector(".details-close-btn").addEventListener("click", closeDetailsPopup);
+}
+
+projectsTableBody.addEventListener("click", (e) => {
+  const button = e.target.closest(".show-project-employees-btn");
+
+  if (!button) return;
+
+  const projectId = button.dataset.id;
+
+  openProjectEmployeesPopup(projectId);
+});
+
+document.addEventListener("click", (e) => {
+  const projectButton = e.target.closest(".go-to-project-btn");
+
+  if (!projectButton) return;
+
+  const projectName = projectButton.dataset.projectName;
+
+  closeDetailsPopup();
+  switchToProjectsWithFilter(projectName);
+});
+
+document.addEventListener("click", (e) => {
+  const employeeButton = e.target.closest(".go-to-employee-btn");
+
+  if (!employeeButton) return;
+
+  const name = employeeButton.dataset.name;
+  const surname = employeeButton.dataset.surname;
+
+  closeDetailsPopup();
+  switchToEmployeesWithFilter(name, surname);
+});
+
+// Show Assignments popup
+function closeDetailsPopup() {
+  closeAssignmentPopup();
+  document.querySelector(".details-overlay")?.remove();
+  document.querySelector(".details-popup")?.remove();
+}
+
+function openEmployeeAssignmentsPopup(employeeId) {
+  closeDetailsPopup();
+
+  const currentData = getCurrentMonthData();
+  const employee = currentData.employees.find((employee) => employee.id === employeeId);
+
+  if (!employee) return;
+
+  const overlay = document.createElement("div");
+  overlay.className = "details-overlay";
+
+  const popup = document.createElement("div");
+  popup.className = "details-popup";
+
+  const assignments = employee.assignments || [];
+
+  const rows = assignments.map((assignment) => {
+    const project = currentData.projects.find((project) => project.id === assignment.projectId);
+
+    if (!project) return "";
+
+    const vacationCoefficient = getVacationCoefficient(employee);
+    const effectiveCapacity = getEffectiveCapacity(employee, assignment);
+    const revenue = getAssignmentRevenue(project, employee, assignment, currentData.employees);
+    const cost = getEmployeeCost(employee, assignment);
+    const profit = revenue - cost;
+
+    return `
+      <tr>
+        <td>
+      <button
+      type="button"
+      class="details-link go-to-project-btn"
+      data-project-name="${project.projectName}"
+      >
+        ${project.projectName}
+        </button>
+        </td>
+        <td>${assignment.capacity.toFixed(2)}</td>
+        <td>${assignment.fit.toFixed(2)}</td>
+        <td>${(employee.vacationDays || []).length}</td>
+        <td>${vacationCoefficient.toFixed(3)}</td>
+        <td>${effectiveCapacity.toFixed(3)}</td>
+        <td>${formatCurrency(revenue)}</td>
+        <td>${formatCurrency(cost)}</td>
+        <td class="${getIncomeClass(profit)}">${formatCurrency(profit)}</td>
+        <td>
+        <button
+            class="edit-assignment-btn"
+            data-employee-id="${employee.id}"
+            data-project-id="${project.id}"
+  >
+    Edit
+</button>
+        <button
+            class="delete-btn unassign-btn"
+            data-employee-id="${employee.id}"
+            data-project-id="${project.id}"
+  >
+    Unassign
+  </button>
+</td>
+      </tr>
+    `;
+  }).join("");
+
+  popup.innerHTML = `
+    <div class="details-popup-header">
+      <h2>Assignments: ${employee.name} ${employee.surname}</h2>
+      <button type="button" class="details-close-btn">×</button>
+    </div>
+
+    <div class="details-popup-body">
+      ${assignments.length === 0
+      ? `<div class="empty-state">This employee has no assignments.</div>`
+      : `
+            <table class="details-table">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Capacity</th>
+                  <th>Fit</th>
+                  <th>Vacation Days</th>
+                  <th>Vacation Coef.</th>
+                  <th>Effective Capacity</th>
+                  <th>Revenue</th>
+                  <th>Cost</th>
+                  <th>Profit</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          `
+    }
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(popup);
+
+  overlay.addEventListener("click", closeDetailsPopup);
+  popup.querySelector(".details-close-btn").addEventListener("click", closeDetailsPopup);
+}
+
+employeesTableBody.addEventListener("click", (e) => {
+  const button = e.target.closest(".show-assignments-btn");
+
+  if (!button) return;
+
+  const employeeId = button.dataset.id;
+
+  openEmployeeAssignmentsPopup(employeeId);
+});
+
+document.addEventListener("click", (e) => {
+  const button = e.target.closest(".unassign-btn");
+
+  if (!button) return;
+
+  const employeeId = button.dataset.employeeId;
+  const projectId = button.dataset.projectId;
+
+  const currentData = getCurrentMonthData();
+  const employee = currentData.employees.find((employee) => employee.id === employeeId);
+  const project = currentData.projects.find((project) => project.id === projectId);
+
+  if (!employee || !project) return;
+
+  const isConfirmed = confirm(
+    `Unassign ${employee.name} ${employee.surname} from "${project.projectName}"?`
+  );
+
+  if (!isConfirmed) return;
+
+  employee.assignments = (employee.assignments || []).filter((assignment) => {
+    return assignment.projectId !== projectId;
+  });
+
+  saveToLocalStorage();
+  renderCurrentMonthData();
+  openEmployeeAssignmentsPopup(employeeId);
+});
+
+function openEditAssignmentPopup(button, employeeId, projectId) {
+  closeAssignmentPopup();
+
+  const currentData = getCurrentMonthData();
+
+  const employee = currentData.employees.find((employee) => employee.id === employeeId);
+  if (!employee) return;
+
+  const project = currentData.projects.find((project) => project.id === projectId);
+  if (!project) return;
+
+  const assignment = (employee.assignments || []).find(
+    (assignment) => assignment.projectId === projectId
+  );
+
+  if (!assignment) return;
+
+  const currentCapacityUsed = getEmployeeCapacityUsed(employee);
+  const capacityWithoutCurrent = currentCapacityUsed - assignment.capacity;
+  const availableCapacity = MAX_EMPLOYEE_CAPACITY - capacityWithoutCurrent;
+
+  const popup = document.createElement("div");
+  popup.className = "assignment-popup";
+
+  popup.innerHTML = `
+    <h3>Edit Assignment</h3>
+
+    <div class="assignment-popup-info">
+      <strong>${employee.name} ${employee.surname}</strong><br>
+      Project: <strong>${project.projectName}</strong><br>
+      Current total capacity: <strong>${currentCapacityUsed.toFixed(1)}/${MAX_EMPLOYEE_CAPACITY}</strong><br>
+      Available for this assignment: <strong>${availableCapacity.toFixed(1)}</strong>
+    </div>
+
+    <label for="edit-assignment-capacity">
+      Capacity: <span id="edit-assignment-capacity-value">${assignment.capacity.toFixed(1)}</span>
+    </label>
+    <input
+      id="edit-assignment-capacity"
+      type="range"
+      min="0.1"
+      max="${availableCapacity.toFixed(1)}"
+      step="0.1"
+      value="${assignment.capacity.toFixed(1)}"
+    >
+
+    <label for="edit-assignment-fit">
+      Project fit: <span id="edit-assignment-fit-value">${assignment.fit.toFixed(1)}</span>
+    </label>
+    <input
+      id="edit-assignment-fit"
+      type="range"
+      min="0"
+      max="1"
+      step="0.1"
+      value="${assignment.fit.toFixed(1)}"
+    >
+
+    <div class="assignment-popup-info">
+      Effective capacity: <strong id="edit-assignment-effective">
+        ${(assignment.capacity * assignment.fit * getVacationCoefficient(employee)).toFixed(3)}
+      </strong>
+    </div>
+
+    <p id="edit-assignment-error" class="assignment-error"></p>
+
+    <div class="assignment-popup-actions">
+      <button type="button" class="assignment-cancel-btn">Cancel</button>
+      <button type="button" class="assignment-save-btn">Save</button>
+    </div>
+  `;
+
+  document.body.appendChild(popup);
+  currentAssignmentPopup = popup;
+
+  positionAssignmentPopup(popup, button);
+
+  const capacityInput = popup.querySelector("#edit-assignment-capacity");
+  const fitInput = popup.querySelector("#edit-assignment-fit");
+  const capacityValue = popup.querySelector("#edit-assignment-capacity-value");
+  const fitValue = popup.querySelector("#edit-assignment-fit-value");
+  const effectiveValue = popup.querySelector("#edit-assignment-effective");
+
+  function updatePreview() {
+    const capacity = Number(capacityInput.value);
+    const fit = Number(fitInput.value);
+    const vacationCoefficient = getVacationCoefficient(employee);
+
+    capacityValue.textContent = capacity.toFixed(1);
+    fitValue.textContent = fit.toFixed(1);
+    effectiveValue.textContent = (capacity * fit * vacationCoefficient).toFixed(3);
+  }
+
+  capacityInput.addEventListener("input", updatePreview);
+  fitInput.addEventListener("input", updatePreview);
+
+  popup.querySelector(".assignment-cancel-btn").addEventListener("click", closeAssignmentPopup);
+
+  popup.querySelector(".assignment-save-btn").addEventListener("click", () => {
+    const capacity = Number(capacityInput.value);
+    const fit = Number(fitInput.value);
+
+    assignment.capacity = capacity;
+    assignment.fit = fit;
+
+    saveToLocalStorage();
+    closeAssignmentPopup();
+    renderCurrentMonthData();
+    openEmployeeAssignmentsPopup(employeeId);
+  });
+
+  setTimeout(() => {
+    document.addEventListener("click", handleAssignmentOutsideClick);
+  }, 0);
+}
+
+document.addEventListener("click", (e) => {
+  const button = e.target.closest(".edit-assignment-btn");
+
+  if (!button) return;
+
+  const employeeId = button.dataset.employeeId;
+  const projectId = button.dataset.projectId;
+
+  openEditAssignmentPopup(button, employeeId, projectId);
+});
+
+// Availability
+function getDaysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate();
+}
+
+function getVacationWorkingDays(vacationDays, year, month) {
+  return vacationDays.filter((dayNumber) => {
+    const date = new Date(year, month, dayNumber);
+    const day = date.getDay();
+
+    return day !== 0 && day !== 6;
+  }).length;
+}
+
+function formatVacationRanges(days, month) {
+  if (!days.length) return "No vacation days selected";
+
+  const sortedDays = [...days].sort((a, b) => a - b);
+  const ranges = [];
+
+  let start = sortedDays[0];
+  let previous = sortedDays[0];
+
+  for (let i = 1; i < sortedDays.length; i++) {
+    const current = sortedDays[i];
+
+    if (current === previous + 1) {
+      previous = current;
+    } else {
+      ranges.push([start, previous]);
+      start = current;
+      previous = current;
+    }
+  }
+
+  ranges.push([start, previous]);
+
+  return ranges.map(([rangeStart, rangeEnd]) => {
+    const startText = `${String(rangeStart).padStart(2, "0")}.${String(month + 1).padStart(2, "0")}`;
+    const endText = `${String(rangeEnd).padStart(2, "0")}.${String(month + 1).padStart(2, "0")}`;
+
+    return rangeStart === rangeEnd ? startText : `${startText}-${endText}`;
+  }).join(", ");
+}
+
+function openAvailabilityCalendar(employeeId) {
+  closeDetailsPopup();
+
+  const currentData = getCurrentMonthData();
+  const employee = currentData.employees.find((employee) => employee.id === employeeId);
+
+  if (!employee) return;
+
+  const year = getCurrentYear();
+  const month = getCurrentMonth();
+  const daysInMonth = getDaysInMonth(year, month);
+  const firstDay = new Date(year, month, 1).getDay();
+  const totalWorkingDays = getWorkingDaysInMonth(year, month);
+
+  let selectedDays = [...(employee.vacationDays || [])];
+
+  const overlay = document.createElement("div");
+  overlay.className = "details-overlay";
+
+  const popup = document.createElement("div");
+  popup.className = "details-popup";
+
+  popup.innerHTML = `
+    <div class="details-popup-header">
+      <h2>Availability: ${employee.name} ${employee.surname}</h2>
+      <button type="button" class="details-close-btn">×</button>
+    </div>
+
+    <div class="details-popup-body">
+      <h3>${monthNames[month]} ${year}</h3>
+
+      <div class="calendar-info">
+        <strong id="working-days-text"></strong><br>
+        <span id="vacation-ranges-text"></span>
+      </div>
+
+      <div class="calendar-grid" id="calendar-grid"></div>
+
+      <div class="calendar-actions">
+        <button type="button" class="assignment-cancel-btn">Cancel</button>
+        <button type="button" class="assignment-save-btn">Set Vacation</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(popup);
+
+  const calendarGrid = popup.querySelector("#calendar-grid");
+  const workingDaysText = popup.querySelector("#working-days-text");
+  const vacationRangesText = popup.querySelector("#vacation-ranges-text");
+
+  function updateCalendarInfo() {
+    const vacationWorkingDays = getVacationWorkingDays(selectedDays, year, month);
+    const actualWorkingDays = totalWorkingDays - vacationWorkingDays;
+
+    workingDaysText.textContent = `Working Days: ${actualWorkingDays}/${totalWorkingDays} days`;
+    vacationRangesText.textContent = formatVacationRanges(selectedDays, month);
+  }
+
+  function renderCalendarGrid() {
+    calendarGrid.innerHTML = "";
+
+    ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].forEach((dayName) => {
+      const item = document.createElement("div");
+      item.className = "calendar-day-name";
+      item.textContent = dayName;
+      calendarGrid.appendChild(item);
+    });
+
+    for (let i = 0; i < firstDay; i++) {
+      const empty = document.createElement("button");
+      empty.className = "calendar-day empty";
+      calendarGrid.appendChild(empty);
+    }
+
+    const today = new Date();
+
+    for (let dayNumber = 1; dayNumber <= daysInMonth; dayNumber++) {
+      const date = new Date(year, month, dayNumber);
+      const day = date.getDay();
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "calendar-day";
+      button.textContent = dayNumber;
+      button.dataset.day = dayNumber;
+
+      if (day === 0 || day === 6) {
+        button.classList.add("weekend");
+      }
+
+      if (
+        today.getFullYear() === year &&
+        today.getMonth() === month &&
+        today.getDate() === dayNumber
+      ) {
+        button.classList.add("today");
+      }
+
+      if (selectedDays.includes(dayNumber)) {
+        button.classList.add("vacation");
+      }
+
+      button.addEventListener("click", () => {
+        if (selectedDays.includes(dayNumber)) {
+          selectedDays = selectedDays.filter((day) => day !== dayNumber);
+        } else {
+          selectedDays.push(dayNumber);
+        }
+
+        renderCalendarGrid();
+        updateCalendarInfo();
+      });
+
+      calendarGrid.appendChild(button);
+    }
+  }
+
+  renderCalendarGrid();
+  updateCalendarInfo();
+
+  overlay.addEventListener("click", closeDetailsPopup);
+  popup.querySelector(".details-close-btn").addEventListener("click", closeDetailsPopup);
+  popup.querySelector(".assignment-cancel-btn").addEventListener("click", closeDetailsPopup);
+
+  popup.querySelector(".assignment-save-btn").addEventListener("click", () => {
+    employee.vacationDays = [...selectedDays].sort((a, b) => a - b);
+
+    saveToLocalStorage();
+    closeDetailsPopup();
+    renderCurrentMonthData();
+  });
+}
+
+employeesTableBody.addEventListener("click", (e) => {
+  const button = e.target.closest(".availability-btn");
+
+  if (!button) return;
+
+  const employeeId = button.dataset.id;
+
+  openAvailabilityCalendar(employeeId);
+});
 
 // Sidebar
 const sidePanel = document.getElementById("side-panel");
@@ -1094,13 +2056,10 @@ projectForm.addEventListener("submit", (e) => {
 
   const newProject = {
     id: crypto.randomUUID(),
-    companyName: document.getElementById("company-name").value,
-    projectName: document.getElementById("project-name").value,
+    companyName: document.getElementById("company-name").value.trim(),
+    projectName: document.getElementById("project-name").value.trim(),
     budget: Number(document.getElementById("project-budget").value),
-    employeeCapacityUsed: 0,
-    employeeCapacityTotal: Number(document.getElementById("employee-capacity").value),
-    employeesCount: 0,
-    estimatedIncome: 0,
+    employeeCapacity: Number(document.getElementById("employee-capacity").value),
   };
 
   currentData.projects.push(newProject);
@@ -1125,16 +2084,13 @@ employeeForm.addEventListener("submit", (e) => {
 
   const newEmployee = {
     id: crypto.randomUUID(),
-    name: document.getElementById("employee-name").value,
-    surname: document.getElementById("employee-surname").value,
-    age: calculateAge(document.getElementById("employee-dob").value),
+    name: document.getElementById("employee-name").value.trim(),
+    surname: document.getElementById("employee-surname").value.trim(),
+    dateOfBirth: document.getElementById("employee-dob").value,
     position: document.getElementById("employee-position").value,
     salary,
-    estimatedPayment: salary * 0.5,
-    assignmentsCount: 0,
-    capacityUsed: 0,
-    capacityTotal: 1.5,
-    projectedIncome: -(salary * 0.5),
+    vacationDays: [],
+    assignments: [],
   };
 
   currentData.employees.push(newEmployee);
