@@ -1188,7 +1188,7 @@ function openAssignmentPopup(button, employeeId) {
     projectCapacityValue.textContent = `${projectedUsed.toFixed(1)}/${project.employeeCapacity}`;
 
     if (projectedUsed > project.employeeCapacity) {
-      errorText.textContent = "Warning: project capacity will be exceeded. Reduce capacity, reduce project fit, or choose another project.";
+      errorText.textContent = "Warning: project capacity will be exceeded. Reduce capacity or project fit if you want to avoid over-capacity.";
     } else {
       errorText.textContent = "";
     }
@@ -1203,16 +1203,8 @@ function openAssignmentPopup(button, employeeId) {
 
   popup.querySelector(".assignment-save-btn").addEventListener("click", () => {
     const projectId = popup.querySelector("#assignment-project").value;
-    const project = currentData.projects.find(p => p.id === projectId);
-
     const capacity = Number(capacityInput.value);
     const fit = Number(fitInput.value);
-
-    const vacationCoefficient = getVacationCoefficient(employee);
-    const effectiveCapacity = capacity * fit * vacationCoefficient;
-
-    const currentProjectUsed = getProjectUsedEffectiveCapacity(project, currentData.employees);
-    const projectedUsed = currentProjectUsed + effectiveCapacity;
 
     employee.assignments.push({
       projectId,
@@ -1542,6 +1534,108 @@ employeesTableBody.addEventListener("click", (e) => {
   openEmployeeAssignmentsPopup(employeeId);
 });
 
+function openUnassignConfirmationPopup(employeeId, projectId) {
+  closeAssignmentPopup();
+
+  const currentData = getCurrentMonthData();
+  const employee = currentData.employees.find((employee) => employee.id === employeeId);
+  const project = currentData.projects.find((project) => project.id === projectId);
+
+  if (!employee || !project) return;
+
+  const assignment = (employee.assignments || []).find((assignment) => {
+    return assignment.projectId === projectId;
+  });
+
+  if (!assignment) return;
+
+  const currentProjectIncome = calculateProjectProfit(project, currentData.employees);
+  const currentProjectUsed = getProjectUsedEffectiveCapacity(project, currentData.employees);
+
+  const assignmentRevenue = getAssignmentRevenue(project, employee, assignment, currentData.employees);
+  const assignmentCost = getEmployeeCost(employee, assignment);
+  const assignmentProfit = assignmentRevenue - assignmentCost;
+
+  const employeesAfterUnassign = cloneData(currentData.employees);
+  const employeeAfterUnassign = employeesAfterUnassign.find((item) => item.id === employeeId);
+
+  employeeAfterUnassign.assignments = (employeeAfterUnassign.assignments || []).filter((assignment) => {
+    return assignment.projectId !== projectId;
+  });
+
+  const projectIncomeAfter = calculateProjectProfit(project, employeesAfterUnassign);
+  const projectUsedAfter = getProjectUsedEffectiveCapacity(project, employeesAfterUnassign);
+
+  const overlay = document.createElement("div");
+  overlay.className = "details-overlay";
+
+  const popup = document.createElement("div");
+  popup.className = "details-popup";
+
+  popup.innerHTML = `
+    <div class="details-popup-header">
+      <h2>Confirm Unassign</h2>
+      <button type="button" class="details-close-btn">×</button>
+    </div>
+
+    <div class="details-popup-body">
+      <p>
+        Are you sure you want to unassign
+        <strong>${employee.name} ${employee.surname}</strong>
+        from <strong>${project.projectName}</strong>?
+      </p>
+
+      <div class="unassign-summary">
+        <div><strong>Assigned Capacity:</strong><span>${assignment.capacity.toFixed(1)}</span></div>
+        <div><strong>Employee Salary Share:</strong><span>${formatCurrency(assignmentCost)}</span></div>
+        <div><strong>Budget Share:</strong><span>${formatCurrency(assignmentRevenue)}</span></div>
+      <div>
+        <strong>Employee Estimated Income:</strong>
+        <span class="${getIncomeClass(assignmentProfit)}">${formatCurrency(assignmentProfit)}</span>
+      </div>
+      <div><strong>Current Project Capacity:</strong><span>${currentProjectUsed.toFixed(1)} / ${project.employeeCapacity}</span></div>
+      <div><strong>Capacity After Unassignment:</strong><span>${projectUsedAfter.toFixed(1)} / ${project.employeeCapacity}</span></div>
+      <div>
+        <strong>Project Income Now:</strong>
+        <span class="${getIncomeClass(currentProjectIncome)}">${formatCurrency(currentProjectIncome)}</span>
+      </div>
+  <div>
+    <strong>Project Income After:</strong>
+    <span class="${getIncomeClass(projectIncomeAfter)}">${formatCurrency(projectIncomeAfter)}</span>
+  </div>
+</div>
+
+      <div class="assignment-popup-actions">
+        <button type="button" class="assignment-cancel-btn">Cancel</button>
+        <button type="button" class="delete-btn confirm-unassign-btn">Unassign</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(popup);
+
+  function closeUnassignPopup() {
+    overlay.remove();
+    popup.remove();
+  }
+
+  overlay.addEventListener("click", closeUnassignPopup);
+  popup.querySelector(".details-close-btn").addEventListener("click", closeUnassignPopup);
+  popup.querySelector(".assignment-cancel-btn").addEventListener("click", closeUnassignPopup);
+
+  popup.querySelector(".confirm-unassign-btn").addEventListener("click", () => {
+    employee.assignments = (employee.assignments || []).filter((assignment) => {
+      return assignment.projectId !== projectId;
+    });
+
+    saveToLocalStorage();
+    closeUnassignPopup();
+    renderCurrentMonthData();
+    openEmployeeAssignmentsPopup(employeeId);
+  });
+}
+
 document.addEventListener("click", (e) => {
   const button = e.target.closest(".unassign-btn");
 
@@ -1550,25 +1644,7 @@ document.addEventListener("click", (e) => {
   const employeeId = button.dataset.employeeId;
   const projectId = button.dataset.projectId;
 
-  const currentData = getCurrentMonthData();
-  const employee = currentData.employees.find((employee) => employee.id === employeeId);
-  const project = currentData.projects.find((project) => project.id === projectId);
-
-  if (!employee || !project) return;
-
-  const isConfirmed = confirm(
-    `Unassign ${employee.name} ${employee.surname} from "${project.projectName}"?`
-  );
-
-  if (!isConfirmed) return;
-
-  employee.assignments = (employee.assignments || []).filter((assignment) => {
-    return assignment.projectId !== projectId;
-  });
-
-  saveToLocalStorage();
-  renderCurrentMonthData();
-  openEmployeeAssignmentsPopup(employeeId);
+  openUnassignConfirmationPopup(employeeId, projectId);
 });
 
 function openEditAssignmentPopup(button, employeeId, projectId) {
@@ -1632,7 +1708,8 @@ function openEditAssignmentPopup(button, employeeId, projectId) {
     <div class="assignment-popup-info">
       Effective capacity: <strong id="edit-assignment-effective">
         ${(assignment.capacity * assignment.fit * getVacationCoefficient(employee)).toFixed(3)}
-      </strong>
+      </strong><br>
+      Project capacity after edit: <strong id="edit-project-capacity"></strong>
     </div>
 
     <p id="edit-assignment-error" class="assignment-error"></p>
@@ -1656,6 +1733,7 @@ function openEditAssignmentPopup(button, employeeId, projectId) {
   const capacityValue = popup.querySelector("#edit-assignment-capacity-value");
   const fitValue = popup.querySelector("#edit-assignment-fit-value");
   const effectiveValue = popup.querySelector("#edit-assignment-effective");
+  const projectCapacityValue = popup.querySelector("#edit-project-capacity");
   const errorText = popup.querySelector("#edit-assignment-error");
 
   function updateEditPreview() {
@@ -1678,9 +1756,11 @@ function openEditAssignmentPopup(button, employeeId, projectId) {
     capacityValue.textContent = capacity.toFixed(1);
     fitValue.textContent = fit.toFixed(1);
     effectiveValue.textContent = effectiveCapacity.toFixed(3);
+    projectCapacityValue.textContent = `${projectedUsed.toFixed(1)}/${project.employeeCapacity}`;
 
     if (projectedUsed > project.employeeCapacity) {
-      errorText.textContent = "Warning: project capacity will be exceeded.";
+      errorText.textContent =
+        "Warning: project capacity will be exceeded. Reduce capacity or project fit if you want to avoid over-capacity.";
     } else {
       errorText.textContent = "";
     }

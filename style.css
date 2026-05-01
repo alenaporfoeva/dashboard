@@ -578,7 +578,6 @@ tbody tr {
     position: fixed;
     top: 50%;
     left: 50%;
-    width: min(1000px, 90vw);
     max-height: 80vh;
     overflow-y: auto;
     transform: translate(-50%, -50%);
@@ -642,6 +641,27 @@ tbody tr {
     cursor: pointer;
     text-decoration: underline;
     padding: 0;
+}
+
+/* Unassign */
+
+.unassign-summary {
+  background: #f5f7f8;
+  border-radius: 10px;
+  padding: 24px 30px;
+  margin-top: 24px;
+}
+
+.unassign-summary div {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 14px;
+  font-size: 22px;
+}
+
+.unassign-summary div:last-child {
+  margin-bottom: 0;
 }
 
 /* Availability */
