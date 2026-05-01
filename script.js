@@ -2333,21 +2333,72 @@ function seedDataFromMonth(sourceKey) {
 
   if (!sourceData) return;
 
-  const isConfirmed = confirm(
-    `Copy data from ${sourceKey} to ${currentKey}? Current month data will be replaced.`
-  );
+  openSeedConfirmationPopup(sourceKey, currentKey);
+}
 
-  if (!isConfirmed) return;
+function openSeedConfirmationPopup(sourceKey, currentKey) {
+  const sourceData = monthlyData[sourceKey];
 
-  monthlyData[currentKey] = cloneData(sourceData);
+  if (!sourceData) return;
 
-  monthlyData[currentKey].employees.forEach((employee) => {
-    employee.vacationDays = [];
+  const [sourceYear, sourceMonth] = sourceKey.split("-");
+  const [currentYear, currentMonth] = currentKey.split("-");
+
+  const overlay = document.createElement("div");
+  overlay.className = "details-overlay";
+
+  const popup = document.createElement("div");
+  popup.className = "details-popup seed-confirm-popup";
+
+  popup.innerHTML = `
+    <div class="details-popup-header">
+      <h2>Confirm Seed Data</h2>
+      <button type="button" class="details-close-btn">×</button>
+    </div>
+
+    <div class="details-popup-body">
+      <p>
+        Copy data from
+        <strong>${monthNames[Number(sourceMonth)]} ${sourceYear}</strong>
+        to
+        <strong>${monthNames[Number(currentMonth)]} ${currentYear}</strong>?
+      </p>
+
+      <p class="assignment-error">
+        Current month data will be replaced.
+      </p>
+
+      <div class="assignment-popup-actions">
+        <button type="button" class="assignment-cancel-btn">Cancel</button>
+        <button type="button" class="assignment-save-btn confirm-seed-btn">Seed</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(popup);
+
+  function closeSeedConfirmationPopup() {
+    overlay.remove();
+    popup.remove();
+  }
+
+  overlay.addEventListener("click", closeSeedConfirmationPopup);
+  popup.querySelector(".details-close-btn").addEventListener("click", closeSeedConfirmationPopup);
+  popup.querySelector(".assignment-cancel-btn").addEventListener("click", closeSeedConfirmationPopup);
+
+  popup.querySelector(".confirm-seed-btn").addEventListener("click", () => {
+    monthlyData[currentKey] = cloneData(sourceData);
+
+    monthlyData[currentKey].employees.forEach((employee) => {
+      employee.vacationDays = [];
+    });
+
+    saveToLocalStorage();
+    closeSeedConfirmationPopup();
+    closeModal();
+    renderCurrentMonthData();
   });
-
-  saveToLocalStorage();
-  closeModal();
-  renderCurrentMonthData();
 }
 
 seedModal.addEventListener("click", (e) => {
