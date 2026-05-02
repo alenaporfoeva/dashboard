@@ -1255,6 +1255,58 @@ employeesTableBody.addEventListener("click", (e) => {
   openAssignmentPopup(assignButton, employeeId);
 });
 
+
+// Action menu
+let currentActionMenu = null;
+
+function closeActionMenu() {
+  if (currentActionMenu) {
+    currentActionMenu.remove();
+    currentActionMenu = null;
+  }
+}
+
+function openActionMenu(button, options) {
+  closeActionMenu();
+
+  const menu = document.createElement("div");
+  menu.className = "action-menu";
+
+  options.forEach(({ label, className, onClick }) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = label;
+    btn.className = className;
+
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      onClick();
+      closeActionMenu();
+    });
+
+    menu.appendChild(btn);
+  });
+
+  document.body.appendChild(menu);
+
+  const rect = button.getBoundingClientRect();
+
+  menu.style.top = `${rect.bottom + window.scrollY + 6}px`;
+  menu.style.left = `${rect.left + window.scrollX}px`;
+
+  currentActionMenu = menu;
+}
+
+document.addEventListener("click", (e) => {
+  if (
+    currentActionMenu &&
+    !currentActionMenu.contains(e.target) &&
+    !e.target.closest(".details-link")
+  ) {
+    closeActionMenu();
+  }
+});
+
 // Navigation links from details popups
 function switchToProjectsWithFilter(projectName) {
   projectFilters = { projectName };
@@ -1400,31 +1452,68 @@ projectsTableBody.addEventListener("click", (e) => {
 });
 
 document.addEventListener("click", (e) => {
-  const projectButton = e.target.closest(".go-to-project-btn");
+  const btn = e.target.closest(".go-to-project-btn");
+  if (!btn) return;
 
-  if (!projectButton) return;
+  e.stopPropagation();
 
-  const projectName = projectButton.dataset.projectName;
+  const projectName = btn.dataset.projectName;
+  const employeeId = btn.closest("tr")?.querySelector(".unassign-btn")?.dataset.employeeId;
+  const projectId = btn.dataset.projectId || btn.closest("tr")?.querySelector(".unassign-btn")?.dataset.projectId;
 
-  closeDetailsPopup();
-  switchToProjectsWithFilter(projectName);
+  openActionMenu(btn, [
+    {
+      label: "See at Projects",
+      className: "show-btn",
+      onClick: () => {
+        closeDetailsPopup();
+        switchToProjectsWithFilter(projectName);
+      },
+    },
+    {
+      label: "Unassign",
+      className: "delete-btn",
+      onClick: () => {
+        openUnassignConfirmationPopup(employeeId, projectId);
+      },
+    },
+  ]);
 });
 
 document.addEventListener("click", (e) => {
-  const employeeButton = e.target.closest(".go-to-employee-btn");
+  const btn = e.target.closest(".go-to-employee-btn");
+  if (!btn) return;
 
-  if (!employeeButton) return;
+  e.stopPropagation();
 
-  const name = employeeButton.dataset.name;
-  const surname = employeeButton.dataset.surname;
+  const name = btn.dataset.name;
+  const surname = btn.dataset.surname;
+  const employeeId = btn.closest("tr")?.querySelector(".unassign-btn")?.dataset.employeeId;
+  const projectId = btn.closest("tr")?.querySelector(".unassign-btn")?.dataset.projectId;
 
-  closeDetailsPopup();
-  switchToEmployeesWithFilter(name, surname);
+  openActionMenu(btn, [
+    {
+      label: "See at Employees",
+      className: "show-btn",
+      onClick: () => {
+        closeDetailsPopup();
+        switchToEmployeesWithFilter(name, surname);
+      },
+    },
+    {
+      label: "Unassign",
+      className: "delete-btn",
+      onClick: () => {
+        openUnassignConfirmationPopup(employeeId, projectId);
+      },
+    },
+  ]);
 });
 
 // Show Assignments popup
 function closeDetailsPopup() {
   closeAssignmentPopup();
+  closeActionMenu();
   document.querySelector(".details-overlay")?.remove();
   document.querySelector(".details-popup")?.remove();
 }
@@ -1850,7 +1939,6 @@ function formatVacationRanges(days, month) {
     if (current === previous + 1) {
       isContinuous = true;
     } else {
-      // проверяем, что между previous и current только выходные
       let onlyWeekendsBetween = true;
 
       for (let d = previous + 1; d < current; d++) {

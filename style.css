@@ -722,6 +722,21 @@ tbody tr {
     margin-top: 18px;
 }
 
+/* Action menu */
+
+.action-menu {
+    position: absolute;
+    z-index: 2200;
+    min-width: 190px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
 /* Buttons */
 
 .add-btn,
@@ -842,4 +857,11 @@ tbody tr {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+}
+
+.action-menu .show-btn,
+.action-menu .delete-btn {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 13px;
 }
