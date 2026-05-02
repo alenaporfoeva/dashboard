@@ -1634,6 +1634,9 @@ employeesTableBody.addEventListener("click", (e) => {
 });
 
 function openUnassignConfirmationPopup(employeeId, projectId) {
+  const openedFromProjectPopup =
+    document.querySelector(".details-popup-header h2")?.textContent.startsWith("Employees:");
+
   closeAssignmentPopup();
 
   const currentData = getCurrentMonthData();
@@ -1717,6 +1720,7 @@ function openUnassignConfirmationPopup(employeeId, projectId) {
   function closeUnassignPopup() {
     overlay.remove();
     popup.remove();
+    closeActionMenu();
   }
 
   overlay.addEventListener("click", closeUnassignPopup);
@@ -1731,7 +1735,12 @@ function openUnassignConfirmationPopup(employeeId, projectId) {
     saveToLocalStorage();
     closeUnassignPopup();
     renderCurrentMonthData();
-    openEmployeeAssignmentsPopup(employeeId);
+
+    if (openedFromProjectPopup) {
+      openProjectEmployeesPopup(projectId);
+    } else {
+      openEmployeeAssignmentsPopup(employeeId);
+    }
   });
 }
 
