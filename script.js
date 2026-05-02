@@ -857,56 +857,112 @@ document.addEventListener("click", (e) => {
 });
 
 // Delete project or employee
-projectsTableBody.addEventListener("click", (e) => {
-  if (!e.target.classList.contains("delete-btn")) return;
-
-  const projectId = e.target.dataset.id;
+function openDeleteConfirmationPopup(type, id) {
   const currentData = getCurrentMonthData();
 
-  const project = currentData.projects.find((project) => project.id === projectId);
-  if (!project) return;
+  const isProject = type === "project";
 
-  const isConfirmed = confirm(`Delete project "${project.projectName}"?`);
-  if (!isConfirmed) return;
+  const item = isProject
+    ? currentData.projects.find((project) => project.id === id)
+    : currentData.employees.find((employee) => employee.id === id);
 
-  currentData.projects = currentData.projects.filter(
-    (project) => project.id !== projectId
-  );
+  if (!item) return;
 
-  currentData.employees.forEach((employee) => {
-    employee.assignments = (employee.assignments || []).filter((assignment) => {
-      return assignment.projectId !== projectId;
-    });
+  const title = isProject
+    ? `Delete Project`
+    : `Delete Employee`;
+
+  const itemName = isProject
+    ? item.projectName
+    : `${item.name} ${item.surname}`;
+
+  const warningText = isProject
+    ? "All employees will be unassigned from this project."
+    : "This employee will be removed from all assignments.";
+
+  const overlay = document.createElement("div");
+  overlay.className = "details-overlay";
+
+  const popup = document.createElement("div");
+  popup.className = "details-popup";
+
+  popup.innerHTML = `
+    <div class="details-popup-header">
+      <h2>${title}</h2>
+      <button type="button" class="details-close-btn">×</button>
+    </div>
+
+    <div class="details-popup-body">
+      <p>
+        Are you sure you want to delete
+        <strong>${itemName}</strong>?
+      </p>
+
+      <div class="delete-summary">
+        <p class="delete-warning">${warningText}</p>
+        <p>This action affects only the current month.</p>
+      </div>
+
+      <div class="assignment-popup-actions">
+        <button type="button" class="assignment-cancel-btn">Cancel</button>
+        <button type="button" class="delete-btn confirm-delete-btn">Delete</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(popup);
+
+  function closeDeletePopup() {
+    overlay.remove();
+    popup.remove();
+  }
+
+  overlay.addEventListener("click", closeDeletePopup);
+  popup.querySelector(".details-close-btn").addEventListener("click", closeDeletePopup);
+  popup.querySelector(".assignment-cancel-btn").addEventListener("click", closeDeletePopup);
+
+  popup.querySelector(".confirm-delete-btn").addEventListener("click", () => {
+    if (isProject) {
+      currentData.projects = currentData.projects.filter((project) => {
+        return project.id !== id;
+      });
+
+      currentData.employees.forEach((employee) => {
+        employee.assignments = (employee.assignments || []).filter((assignment) => {
+          return assignment.projectId !== id;
+        });
+      });
+    } else {
+      currentData.employees = currentData.employees.filter((employee) => {
+        return employee.id !== id;
+      });
+    }
+
+    saveToLocalStorage();
+    closeDeletePopup();
+    renderCurrentMonthData();
   });
+}
 
-  saveToLocalStorage();
-  renderCurrentMonthData();
+projectsTableBody.addEventListener("click", (e) => {
+  const deleteButton = e.target.closest(".delete-btn");
+
+  if (!deleteButton) return;
+
+  const projectId = deleteButton.dataset.id;
+
+  openDeleteConfirmationPopup("project", projectId);
 });
 
 employeesTableBody.addEventListener("click", (e) => {
-  if (!e.target.classList.contains("delete-btn")) return;
+  const deleteButton = e.target.closest(".delete-btn");
 
-  const employeeId = e.target.dataset.id;
-  const currentData = getCurrentMonthData();
+  if (!deleteButton) return;
 
-  const employee = currentData.employees.find(
-    (employee) => employee.id === employeeId
-  );
+  const employeeId = deleteButton.dataset.id;
 
-  if (!employee) return;
-
-  const isConfirmed = confirm(
-    `Delete employee "${employee.name} ${employee.surname}"?`
-  );
-
-  if (!isConfirmed) return;
-
-  currentData.employees = currentData.employees.filter(
-    (employee) => employee.id !== employeeId
-  );
-
-  saveToLocalStorage();
-  renderCurrentMonthData();
+  openDeleteConfirmationPopup("employee", employeeId);
 });
 
 // Inline editing for employee position and salary
