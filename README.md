@@ -1,29 +1,20 @@
-# Dashboard Project
+# Employee & Project Dashboard
 
-## Description
-
-A simple web dashboard for managing projects and employees. Includes a sidebar, period selector, and data tables.
+App for managing employees, projects, and assignments.
 
 ## Features
+- Add/edit/delete employees & projects
+- Assign employees (capacity + fit)
+- Monthly data snapshots
+- Revenue, cost, profit calculations
+- Filters, sorting, popups
+- Availability (vacation calendar)
 
-* Sidebar navigation (Projects, Employees)
-* Month and year selector
-* Tables with sorting and filtering
-* Add buttons for new records
-
-## Tech Stack
-
-* HTML
-* CSS
-* JavaScript
+## Tech
+HTML, CSS, JavaScript, LocalStorage
 
 ## How to Run
-
 1. Clone the repository:
    git clone https://github.com/alenaporfoeva/dashboard.git
 2. Open the project folder
 3. Open index.html in a browser or use Live Server
-
-## Notes
-
-Focus is on layout and UI. Some functionality may require JavaScript.
