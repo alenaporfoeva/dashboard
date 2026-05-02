@@ -1,3 +1,7 @@
+/* =========================
+   Base
+========================= */
+
 *,
 *::before,
 *::after {
@@ -14,6 +18,14 @@ html {
 .page {
     min-height: 100vh;
 }
+
+.hidden {
+    display: none;
+}
+
+/* =========================
+   Sidebar
+========================= */
 
 .side-panel {
     position: fixed;
@@ -39,10 +51,6 @@ html {
     padding: 12px;
     cursor: pointer;
     font-size: 1em;
-}
-
-.hidden {
-    display: none;
 }
 
 #open-side-panel-button {
@@ -108,6 +116,10 @@ nav {
     background-color: #34495e;
 }
 
+/* =========================
+   Main Layout
+========================= */
+
 .main-content {
     margin-left: 250px;
     min-height: 100vh;
@@ -141,19 +153,17 @@ h1 {
     border-bottom: 2px solid #bdc3c7;
     padding-bottom: 10px;
     font-weight: 700;
-
 }
 
-table, .seed-table {
+/* =========================
+   Tables
+========================= */
+
+table,
+.seed-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 40px;
-}
-
-th.sortable {
-    cursor: pointer;
-    user-select: none;
-    transition: background-color .2s ease;
 }
 
 th,
@@ -168,6 +178,12 @@ th {
     font-weight: 700;
 }
 
+th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
 thead tr {
     background-color: #34495e;
     color: #fff;
@@ -179,6 +195,10 @@ tbody tr {
     color: #2c3e50;
     height: 60px;
 }
+
+/* =========================
+   Financial Values
+========================= */
 
 .total-income-info {
     margin-top: 20px;
@@ -197,6 +217,21 @@ tbody tr {
     color: #7f8c8d;
     font-size: 0.9em;
 }
+
+.positive-income {
+    color: #27ae60;
+    font-weight: 700;
+}
+
+.negative-income,
+.negative {
+    color: #e74c3c;
+    font-weight: 700;
+}
+
+/* =========================
+   Filters
+========================= */
 
 .filter-icon {
     margin-left: 8px;
@@ -228,12 +263,65 @@ tbody tr {
     margin-bottom: 14px;
 }
 
-.filter-popup-actions {
+.filter-popup-actions,
+.filters-row,
+.filter-chips {
     display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.filter-popup-actions {
     gap: 12px;
 }
 
-/* Inline editing for employee position and salary */
+.filters-row,
+.filter-chips {
+    flex-wrap: wrap;
+}
+
+.filters-row {
+    margin: 30px 0 24px;
+}
+
+.filter-chips {
+    margin: 0;
+}
+
+.filter-chip,
+.clear-filters {
+    height: 46px;
+    min-width: 240px;
+    padding: 0 18px 0 22px;
+    border: none;
+    border-radius: 24px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.filter-chip {
+    background-color: #3498db;
+}
+
+.clear-filters {
+    background-color: #e74c3c;
+    cursor: pointer;
+    margin: 0;
+}
+
+.clear-filters.hidden {
+    display: none;
+}
+
+/* =========================
+   Inline Editing
+========================= */
 
 .editable-position,
 .editable-salary {
@@ -256,18 +344,12 @@ tbody tr {
     border-radius: 5px;
 }
 
-.negative-income {
-    color: #e74c3c;
-    font-weight: 700;
-}
+/* =========================
+   Slide-in Forms
+========================= */
 
-.positive-income {
-    color: #27ae60;
-    font-weight: 700;
-}
-
-/* Add project and employee form */
-.project-panel, .employee-panel {
+.project-panel,
+.employee-panel {
     position: fixed;
     top: 0;
     right: -460px;
@@ -281,64 +363,12 @@ tbody tr {
     overflow-y: auto;
 }
 
-.project-panel.open {
-    right: 0;
-}
-
-.project-panel h2 {
-    font-family: inherit;
-    font-size: 28px;
-    font-weight: 700;
-    line-height: 1.1;
-    color: #2c3e50;
-    margin-bottom: 24px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #bdc3c7;
-}
-
-.project-panel form {
-    display: flex;
-    flex-direction: column;
-}
-
-.project-panel label {
-    font-family: inherit;
-    font-size: 18px;
-    font-weight: 500;
-    line-height: 1.4;
-    color: #2c3e50;
-    margin-bottom: 8px;
-}
-
-.project-panel input {
-    width: 100%;
-    height: 42px;
-    padding: 0 12px;
-    margin-bottom: 18px;
-    border: 1px solid #ff5a4f;
-    border-radius: 6px;
-    background-color: #fff;
-    font-family: inherit;
-    font-size: 16px;
-    color: #2c3e50;
-    outline: none;
-}
-
-.project-panel input:focus {
-    border-color: #ff5a4f;
-}
-
-.project-panel__actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 8px;
-}
-
+.project-panel.open,
 .employee-panel.open {
     right: 0;
 }
 
+.project-panel h2,
 .employee-panel h2 {
     font-family: inherit;
     font-size: 28px;
@@ -350,11 +380,13 @@ tbody tr {
     border-bottom: 2px solid #bdc3c7;
 }
 
+.project-panel form,
 .employee-panel form {
     display: flex;
     flex-direction: column;
 }
 
+.project-panel label,
 .employee-panel label {
     font-family: inherit;
     font-size: 18px;
@@ -364,6 +396,7 @@ tbody tr {
     margin-bottom: 8px;
 }
 
+.project-panel input,
 .employee-panel input,
 .employee-panel select {
     width: 100%;
@@ -379,11 +412,13 @@ tbody tr {
     outline: none;
 }
 
+.project-panel input:focus,
 .employee-panel input:focus,
 .employee-panel select:focus {
     border-color: #ff5a4f;
 }
 
+.project-panel__actions,
 .employee-panel__actions {
     display: flex;
     justify-content: flex-end;
@@ -391,7 +426,9 @@ tbody tr {
     margin-top: 8px;
 }
 
-/* Error message and validation for forms */
+/* =========================
+   Form Validation
+========================= */
 
 .error-message {
     color: #e74c3c;
@@ -413,14 +450,13 @@ tbody tr {
     border-color: #2ecc71;
 }
 
-/* Seed Data popup */
+/* =========================
+   Seed Modal
+========================= */
 
 .overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: rgba(0, 0, 0, 0.45);
     z-index: 1300;
 }
@@ -434,7 +470,7 @@ tbody tr {
     border-radius: 10px;
     overflow: hidden;
     z-index: 1400;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
 }
 
 .seed-modal__header {
@@ -462,61 +498,9 @@ tbody tr {
     padding: 20px 25px;
 }
 
-.negative {
-    color: #e74c3c;
-    font-weight: bold;
-}
-
-/* Filter-chips */
-
-.filters-row {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin: 30px 0 24px;
-}
-
-.filter-chips {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin: 0;
-}
-
-.filter-chip,
-.clear-filters {
-    height: 46px;
-    min-width: 240px;
-    padding: 0 18px 0 22px;
-    border: none;
-    border-radius: 24px;
-    color: #fff;
-    font-family: inherit;
-    font-size: 18px;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-}
-
-.clear-filters.hidden {
-    display: none;
-}
-
-.filter-chip {
-    background-color: #3498db;
-}
-
-.clear-filters {
-    background-color: #e74c3c;
-    cursor: pointer;
-    margin: 0;
-}
-
-/* Assign */
+/* =========================
+   Assignment Popup
+========================= */
 
 .assignment-popup {
     position: absolute;
@@ -552,7 +536,8 @@ tbody tr {
     color: #2c3e50;
 }
 
-.assignment-popup-actions {
+.assignment-popup-actions,
+.calendar-actions {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
@@ -565,7 +550,9 @@ tbody tr {
     font-size: 14px;
 }
 
-/* Show Assignments popup */
+/* =========================
+   Details Popups
+========================= */
 
 .details-overlay {
     position: fixed;
@@ -584,7 +571,7 @@ tbody tr {
     background: #fff;
     border-radius: 10px;
     z-index: 1800;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .details-popup-header {
@@ -643,28 +630,32 @@ tbody tr {
     padding: 0;
 }
 
-/* Unassign */
+/* =========================
+   Unassign Summary
+========================= */
 
 .unassign-summary {
-  background: #f5f7f8;
-  border-radius: 10px;
-  padding: 24px 30px;
-  margin-top: 24px;
+    background: #f5f7f8;
+    border-radius: 10px;
+    padding: 24px 30px;
+    margin-top: 24px;
 }
 
 .unassign-summary div {
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 14px;
-  font-size: 22px;
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 14px;
+    font-size: 22px;
 }
 
 .unassign-summary div:last-child {
-  margin-bottom: 0;
+    margin-bottom: 0;
 }
 
-/* Availability */
+/* =========================
+   Availability Calendar
+========================= */
 
 .calendar-grid {
     display: grid;
@@ -716,13 +707,12 @@ tbody tr {
 }
 
 .calendar-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
     margin-top: 18px;
 }
 
-/* Action menu */
+/* =========================
+   Action Menu
+========================= */
 
 .action-menu {
     position: absolute;
@@ -737,7 +727,16 @@ tbody tr {
     gap: 6px;
 }
 
-/* Buttons */
+.action-menu .show-btn,
+.action-menu .delete-btn {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 13px;
+}
+
+/* =========================
+   Buttons
+========================= */
 
 .add-btn,
 .seed-btn,
@@ -755,7 +754,7 @@ tbody tr {
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    transition: background-color .2s ease;
+    transition: background-color 0.2s ease;
 }
 
 .add-btn,
@@ -792,6 +791,15 @@ tbody tr {
     text-align: center;
 }
 
+.show-btn {
+    min-width: 110px;
+}
+
+.assign-btn {
+    display: block;
+    margin-bottom: 6px;
+}
+
 .delete-btn {
     background-color: #e74c3c;
     padding: 10px 16px;
@@ -801,15 +809,6 @@ tbody tr {
 .availability-btn {
     background-color: #8e44ad;
     padding: 8px 14px;
-    display: block;
-    margin-bottom: 6px;
-}
-
-.show-btn {
-    min-width: 110px;
-}
-
-.assign-btn {
     display: block;
     margin-bottom: 6px;
 }
@@ -830,7 +829,8 @@ tbody tr {
     color: #fff;
 }
 
-.panel-add-btn {
+.panel-add-btn,
+.panel-add-btn:disabled {
     background-color: #e9e9e9;
     color: #b7b7b7;
     cursor: not-allowed;
@@ -842,12 +842,6 @@ tbody tr {
     cursor: pointer;
 }
 
-.panel-add-btn:disabled {
-    background-color: #e9e9e9;
-    color: #b7b7b7;
-    cursor: not-allowed;
-}
-
 .filter-chip button {
     width: 28px;
     height: 28px;
@@ -857,11 +851,4 @@ tbody tr {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-}
-
-.action-menu .show-btn,
-.action-menu .delete-btn {
-    width: 100%;
-    padding: 8px 10px;
-    font-size: 13px;
 }
