@@ -4,7 +4,7 @@ const SELECTED_MONTH_KEY = "selected-month";
 const SELECTED_YEAR_KEY = "selected-year";
 
 // Initial data
-const projects = [
+const demoProjects = [
   {
     id: "project-1",
     companyName: "DataViz Inc",
@@ -49,7 +49,7 @@ const projects = [
   },
 ];
 
-const employees = [
+const demoEmployees = [
   {
     id: "employee-1",
     name: "John",
@@ -129,8 +129,8 @@ const employees = [
 // Monthly data
 const monthlyData = {
   "2026-0": {
-    projects: JSON.parse(JSON.stringify(projects)),
-    employees: JSON.parse(JSON.stringify(employees)),
+    projects: JSON.parse(JSON.stringify(demoProjects)),
+    employees: JSON.parse(JSON.stringify(demoEmployees)),
   },
 };
 

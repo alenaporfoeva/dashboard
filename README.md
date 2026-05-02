@@ -18,3 +18,6 @@ HTML, CSS, JavaScript, LocalStorage
    git clone https://github.com/alenaporfoeva/dashboard.git
 2. Open the project folder
 3. Open index.html in a browser or use Live Server
+
+## Notes
+The app includes demo data for easier testing.
