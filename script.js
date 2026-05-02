@@ -758,10 +758,6 @@ function openFilterPopup(icon, tableType, key) {
         <option value="Architect">Architect</option>
         <option value="BO">BO</option>
       </select>
-      <div class="filter-popup-actions">
-        <button type="button" class="filter-apply-btn">Apply</button>
-        <button type="button" class="filter-cancel-btn">Cancel</button>
-      </div>
     `;
   } else {
     popup.innerHTML = `
@@ -788,6 +784,23 @@ function openFilterPopup(icon, tableType, key) {
   input.value = currentValue;
   input.focus();
 
+  if (key === "position") {
+    input.addEventListener("change", () => {
+      const value = input.value;
+
+      if (value === "") {
+        delete filters[key];
+      } else {
+        filters[key] = value;
+      }
+
+      closeFilterPopup();
+      renderCurrentMonthData();
+    });
+
+    return;
+  }
+
   applyBtn.addEventListener("click", () => {
     const value = input.value.trim();
 
@@ -802,10 +815,7 @@ function openFilterPopup(icon, tableType, key) {
   });
 
   cancelBtn.addEventListener("click", () => {
-    delete filters[key];
-
     closeFilterPopup();
-    renderCurrentMonthData();
   });
 
   input.addEventListener("keydown", (e) => {
@@ -1131,9 +1141,9 @@ function openAssignmentPopup(button, employeeId) {
     </select>
 
     <label for="assignment-capacity">
-      Capacity: <span id="assignment-capacity-value">0.1</span>
+  Capacity: <span id="assignment-capacity-value">0.0</span>
     </label>
-    <input id="assignment-capacity" type="range" min="0.1" max="${availableCapacity.toFixed(1)}" step="0.1" value="0.1">
+    <input id="assignment-capacity" type="range" min="0" max="${availableCapacity.toFixed(1)}" step="0.1" value="0">
 
     <label for="assignment-fit">
       Project fit: <span id="assignment-fit-value">1.0</span>
@@ -1687,7 +1697,7 @@ function openEditAssignmentPopup(button, employeeId, projectId) {
     <input
       id="edit-assignment-capacity"
       type="range"
-      min="0.1"
+      min="0"
       max="${availableCapacity.toFixed(1)}"
       step="0.1"
       value="${assignment.capacity.toFixed(1)}"
@@ -1818,16 +1828,44 @@ function getVacationWorkingDays(vacationDays, year, month) {
 function formatVacationRanges(days, month) {
   if (!days.length) return "No vacation days selected";
 
+  const year = getCurrentYear();
+
   const sortedDays = [...days].sort((a, b) => a - b);
   const ranges = [];
 
   let start = sortedDays[0];
   let previous = sortedDays[0];
 
+  function isWeekend(day) {
+    const date = new Date(year, month, day);
+    const d = date.getDay();
+    return d === 0 || d === 6;
+  }
+
   for (let i = 1; i < sortedDays.length; i++) {
     const current = sortedDays[i];
 
+    let isContinuous = false;
+
     if (current === previous + 1) {
+      isContinuous = true;
+    } else {
+      // проверяем, что между previous и current только выходные
+      let onlyWeekendsBetween = true;
+
+      for (let d = previous + 1; d < current; d++) {
+        if (!isWeekend(d)) {
+          onlyWeekendsBetween = false;
+          break;
+        }
+      }
+
+      if (onlyWeekendsBetween) {
+        isContinuous = true;
+      }
+    }
+
+    if (isContinuous) {
       previous = current;
     } else {
       ranges.push([start, previous]);
@@ -2047,13 +2085,17 @@ function restoreSelectedPeriod() {
   const savedMonth = localStorage.getItem(SELECTED_MONTH_KEY);
   const savedYear = localStorage.getItem(SELECTED_YEAR_KEY);
 
-  if (savedMonth !== null) {
-    monthSelect.value = savedMonth;
-  }
+  const currentDate = new Date();
+  const currentMonth = String(currentDate.getMonth());
+  const currentYear = String(currentDate.getFullYear());
 
-  if (savedYear !== null) {
-    yearSelect.value = savedYear;
-  }
+  monthSelect.value = savedMonth !== null ? savedMonth : currentMonth;
+
+  const yearExists = [...yearSelect.options].some((option) => {
+    return option.value === currentYear;
+  });
+
+  yearSelect.value = savedYear !== null ? savedYear : yearExists ? currentYear : "2026";
 }
 
 navProjects.addEventListener("click", (e) => {
@@ -2137,15 +2179,28 @@ function validateProjectForm() {
   const budget = document.getElementById("project-budget");
   const capacity = document.getElementById("employee-capacity");
 
-  const isProjectNameValid = projectName.value.trim().length >= 3;
-  const isCompanyNameValid = companyName.value.trim().length >= 2;
-  const isBudgetValid = Number(budget.value) > 0;
-  const isCapacityValid = Number(capacity.value) >= 1;
+  const alphanumeric = /^[A-Za-zА-Яа-яЁё0-9\s-]+$/;
 
-  setFieldState(projectName, document.getElementById("project-name-error"), isProjectNameValid, "Project name must be at least 3 characters");
-  setFieldState(companyName, document.getElementById("company-name-error"), isCompanyNameValid, "Company name must be at least 2 characters");
-  setFieldState(budget, document.getElementById("project-budget-error"), isBudgetValid, "Budget must be greater than 0");
-  setFieldState(capacity, document.getElementById("employee-capacity-error"), isCapacityValid, "Employee capacity must be at least 1");
+  const isProjectNameValid =
+    projectName.value.trim().length >= 3 &&
+    alphanumeric.test(projectName.value.trim());
+
+  const isCompanyNameValid =
+    companyName.value.trim().length >= 2 &&
+    alphanumeric.test(companyName.value.trim());
+
+  const isBudgetValid =
+    Number(budget.value) > 0 &&
+    /^\d+(\.\d{1,2})?$/.test(budget.value);
+
+  const isCapacityValid =
+    Number(capacity.value) >= 1 &&
+    Number.isInteger(Number(capacity.value));
+
+  setFieldState(projectName, document.getElementById("project-name-error"), isProjectNameValid, "Project name must be at least 3 characters and contain only letters or numbers");
+  setFieldState(companyName, document.getElementById("company-name-error"), isCompanyNameValid, "Company name must be at least 2 characters and contain only letters or numbers");
+  setFieldState(budget, document.getElementById("project-budget-error"), isBudgetValid, "Budget must be greater than 0 and have max 2 decimal places");
+  setFieldState(capacity, document.getElementById("employee-capacity-error"), isCapacityValid, "Employee capacity must be a whole number and at least 1");
 
   const isFormValid =
     isProjectNameValid &&
@@ -2172,13 +2227,15 @@ function validateEmployeeForm() {
   const isSurnameValid = surname.value.trim().length >= 3 && lettersOnly.test(surname.value.trim());
   const isDobValid = dob.value !== "" && calculateAge(dob.value) >= 18;
   const isPositionValid = position.value !== "";
-  const isSalaryValid = Number(salary.value) > 0;
+  const isSalaryValid =
+    Number(salary.value) > 0 &&
+    /^\d+(\.\d{1,2})?$/.test(salary.value);
 
   setFieldState(name, document.getElementById("employee-name-error"), isNameValid, "Name must be at least 3 characters and contain only letters");
   setFieldState(surname, document.getElementById("employee-surname-error"), isSurnameValid, "Surname must be at least 3 characters and contain only letters");
   setFieldState(dob, document.getElementById("employee-dob-error"), isDobValid, "You must be at least 18 years old");
   setFieldState(position, document.getElementById("employee-position-error"), isPositionValid, "Please select a position");
-  setFieldState(salary, document.getElementById("employee-salary-error"), isSalaryValid, "Salary must be greater than 0");
+  setFieldState(salary, document.getElementById("employee-salary-error"), isSalaryValid, "Salary must be greater than 0 and have max 2 decimal places");
 
   const isFormValid =
     isNameValid &&
